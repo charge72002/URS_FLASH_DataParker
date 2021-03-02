@@ -66,7 +66,7 @@ def fileInputTest(fileName):
     
 #filename = "/Users/wongb/Documents/URS Data/m1.5_c1_16x16_128x128_Rodrigues_Streaming/More Plot Files/parkerCRs_hdf5_plt_cnt_0020"
 filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0076"
-dict = fileInputTest(filename);
+# dict = fileInputTest(filename);
         
 """Sets up coordinates for 16384 * 64 data points. Returns posXarray, posYarray"""
 def bigCoordinateSetup():
@@ -113,8 +113,37 @@ def bigCoordinateSetup():
 # stream = streamlines.path(0)
 # matplotlib.pylab.semilogy(stream['t'], stream['density'], '-x')
 
+#see https://yt-project.org/doc/analyzing/objects.html
 ds = yt.load(filename)
 print(ds)
+print(ds.r["density"])
+print(ds.r["density"].size)
+# dd = ds.all_data()
+# print(dd["coordinates"])
+#coordinates does not exist, already formatted into XYZ
+print(ds.r["x"])
+
+
+
+# dict = {
+#     "coords" : ds.r['coordinates'],
+#     "cray" : ds.r['cray'],
+#     "dens" : ds.r['dens'],
+#     "magx" : ds.r['magx'],
+#     "magy" : ds.r['magy'],
+#     "magz" : ds.r['magz'],
+#     "pres" : ds.r['pres'],
+#     "velx" : ds.r['velx'],
+#     "vely" : ds.r['vely'],
+#     "velz" : ds.r['velz']
+# }
+
+numlines = 100
+pos = ds.r["magx"]
+streamlines = Streamlines (ds, ds.r['x'], "velx", "vely")
+
+# Streamlines.streamline(ds, dict['velx'], dict['vely'])
+# Streamlines.streamlines.integrate_through_volume()
 
 # print("Saving figures...")
 # plt.savefig('Plots/VelocityPlot_m2_c1_0076_stream1.png', dpi=1000);

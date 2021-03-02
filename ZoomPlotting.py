@@ -194,6 +194,6 @@ plt.ylabel("y (kpc)")
 
 print("Saving figures...")
 # plt.savefig('Plots/DensityPlot_m2_c1_0076_zoom5.png', dpi=1000);
-plt.savefig('Plots/TempPlot_m2_c1_0076_res5.png', dpi=1000);
+# plt.savefig('Plots/TempPlot_m2_c1_0076_res5.png', dpi=1000);
 #plt.savefig('Plots/VelocityPlot_m2_c1_0076_v3.svg');
 print("Done.")
