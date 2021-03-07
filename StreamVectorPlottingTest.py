@@ -138,9 +138,13 @@ print(ds.r["x"])
 #     "velz" : ds.r['velz']
 # }
 
+slc = yt.SlicePlot(ds, 'z', 'density', center=[0.5, -0.5, 0])
+slc.zoom(10);
+slc.save("YT_Test_Plots/HDF5_Slice2");
+
 numlines = 100
 pos = ds.r["magx"]
-streamlines = Streamlines (ds, ds.r['x'], "velx", "vely")
+streamlines = Streamlines (ds, ds.r['x'], "velx", "vely", "velz")
 
 # Streamlines.streamline(ds, dict['velx'], dict['vely'])
 # Streamlines.streamlines.integrate_through_volume()
