@@ -21,8 +21,8 @@ def fileInputTest(fileName):
     print("\nReading file:")
     print(f2) #general info
     print(f2.attrs)
-    #print("\nKeys:")
-    #print(f2.keys())
+    print("\nKeys:")
+    print(f2.keys())
 
     #print("\nLoading relevant data fields:")
     #print(f2['coordinates'])
@@ -126,6 +126,10 @@ tempArray = tempArray.flatten()
 
 """Adjust boundaries"""
 TFtable = np.logical_and((pow(10, 22) < posXarray), (posYarray < 0))
+
+# mag = np.hypot(velXarray, velYarray)
+# TFtable = np.logical_and(5*pow(10, 6) < mag))
+
 
 posXarray = posXarray[TFtable]
 posYarray = posYarray[TFtable]

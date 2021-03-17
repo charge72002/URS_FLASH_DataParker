@@ -15,7 +15,9 @@ import numpy as np
 import sys
 import csv #https://docs.python.org/3/library/csv.html#csv.Dialect
 from yt.visualization.api import Streamlines
+
 import yt
+from yt.units import kpc
 
 def fileInputTest(fileName):
     f2 = h5py.File(fileName, 'r')
@@ -115,13 +117,13 @@ def bigCoordinateSetup():
 
 #see https://yt-project.org/doc/analyzing/objects.html
 ds = yt.load(filename)
-print(ds)
-print(ds.r["density"])
-print(ds.r["density"].size)
+# print(ds)
+# print(ds.r["density"])
+# print(ds.r["density"].size)
 # dd = ds.all_data()
 # print(dd["coordinates"])
 #coordinates does not exist, already formatted into XYZ
-print(ds.r["x"])
+# print(ds.r["x"])
 
 
 
@@ -138,13 +140,35 @@ print(ds.r["x"])
 #     "velz" : ds.r['velz']
 # }
 
-slc = yt.SlicePlot(ds, 'z', 'density', center=[0.5, -0.5, 0])
+slc = yt.SlicePlot(ds, 'z', 'density', center=(4*kpc, -2.5*kpc, 0), width=(2*kpc, 2*kpc, 0)) #3D!!!
+slc = yt.SlicePlot(ds, 'z', 'density', width=(2*kpc, 2*kpc, 0)) #3D!!!
+slc = yt.SlicePlot(ds, 'z', 'density')
+slc = yt.SlicePlot(ds, 'z', 'vely', center=(-2.5*kpc, 4*kpc, 0)) #3D!!!
+# slc = yt.SlicePlot(ds, 'z', 'vely')
 slc.zoom(10);
-slc.save("YT_Test_Plots/HDF5_Slice2");
+slc.set_width(2*kpc)
+slc.set_xlim(0, 2.51E+22)
+slc.set_ylim(0, -2.75E+19)
+slc.annotate_title("parkerCRs_hdf5_plt_cnt_0076 Density")
+slc.save("YT_Test_Plots/HDF5/Zoom4");
 
-numlines = 100
-pos = ds.r["magx"]
-streamlines = Streamlines (ds, ds.r['x'], "velx", "vely", "velz")
+# numlines = 100
+# pos = ds.r["magx"]
+# streamlines = Streamlines (ds, ds.r['x'], "velx", "vely", "velz")
+
+# plot = yt.ProfilePlot(ds, "temperature", ["vely"])
+def velMagnitude(field, data):
+    return (3/2)*data['gas', 'number_density'] * data['gas', 'kT']
+ds.add_field()
+
+velMagnitude = np.hypot(ds.r['velx'], ds.r['vely'])
+plot = yt.PhasePlot(ds, "density", "temperature", 'vely',
+                    fractional = True, accumulation = False)
+plot.set_unit('vely', 'cm/s') #vely units weird
+plot.annotate_title("Y velocity probability distribution A no accumulation")
+plot.set_xlim(0, 2.51E+22)
+plot.set_ylim(0, -2.75E+19)
+plot.save("YT_Test_Plots/HDF5/A")
 
 # Streamlines.streamline(ds, dict['velx'], dict['vely'])
 # Streamlines.streamlines.integrate_through_volume()
