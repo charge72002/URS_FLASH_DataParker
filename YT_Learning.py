@@ -89,7 +89,7 @@ plot.save("YT_Test_Plots/1DProfile")
 ################
 
 # Extra keywords for stats:
-# weight_field = none   Total of some field in a bin
+# weight_field = none   Total of some field in a bin; default averages values
 # fractional = True     Creates probability distribution fcns
 # accumulation = True   Cumulative distribution function, i.e. N = sum of 0 to N
 phasePlot = yt.PhasePlot(ds, "density", "temperature", ["cell_mass"], weight_field=None)
@@ -112,3 +112,18 @@ particlePlot.save("YT_Test_Plots/2DParticlePlot_A")
 particlePlot = yt.ParticlePlot(ds, 'particle_position_x', 'particle_position_y', 'particle_mass')
 particlePlot.annotate_title("IsolatedGalaxy Particle Plot + Mass")
 particlePlot.save("YT_Test_Plots/2DParticlePlot_B")
+
+################
+# Derived Fields
+################
+def thermal_energy_dens(field, data):
+    return (3/2)*data['gas', 'number_density']*data['gas', 'kT']
+
+ds.add_field(('gas', 'thermal_energy_density'),
+             units="erg/cm**3", function=thermal_energy_dens,
+             sampling_type='cell')
+
+for i in sorted(ds.derived_field_list):
+    print(i)
+    
+ad = ds.all_data
