@@ -26,19 +26,19 @@ filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/par
 ds = yt.load(filename)
 
 #Zoom
-slc = yt.SlicePlot(ds, 'z', 'density', center=(4*kpc, -2.5*kpc, 0), width=(2*kpc, 2*kpc, 0)) #3D!!!
+slc = yt.SlicePlot(ds, 'z', 'density', center=(4.1*kpc, -2.85*kpc, 0), width=(2*kpc, 2*kpc, 0)) #3D!!!
 slc.annotate_velocity(factor=16)
 slc.zoom(10);
-slc.set_width(2*kpc)
+slc.set_width(.2*kpc)
 # slc.set_unit('temp', 'K')
 slc.annotate_title("parkerCRs_hdf5_plt_cnt_0076 Density + Velocity")
-slc.save("YT_Test_Plots/HDF5/VectorZoom2");
+slc.save("YT_Test_Plots/HDF5/VectorZoom4");
 
 #No zoom
 slc = yt.SlicePlot(ds, 'z', 'density')
 slc.annotate_velocity(factor=16)
 slc.annotate_title("parkerCRs_hdf5_plt_cnt_0076 Density + Velocity")
-slc.save("YT_Test_Plots/HDF5/Vector2");
+slc.save("YT_Test_Plots/HDF5/Vector2")
 
 # slc.hide_axes()
 # velMagnitude = np.hypot(ds.r['velx'], ds.r['vely'])
@@ -48,10 +48,11 @@ slc.save("YT_Test_Plots/HDF5/Vector2");
 #     return np.hypot(data['velx'], data['vely'])
 # ds.add_field((ds, "velMagnitude"), units="cm/s", function=velMagnitude)
 # 
-# for i in sorted(ds.field_list):
-#     print(i)
-# for i in sorted(ds.derived_field_list):
-#     print(i)
+for i in sorted(ds.field_list):
+    print(i)
+for i in sorted(ds.derived_field_list):
+    print(i)
+print((('flash', 'cray')) == ('flash', 'cray'));
 # =============================================================================
 
 ##################
@@ -59,11 +60,16 @@ slc.save("YT_Test_Plots/HDF5/Vector2");
 ##################
 
 ad = ds.all_data()
-plot = yt.PhasePlot(ad, "density", "temperature", ['velocity_magnitude'],
-                    fractional = True, accumulation = True)
+# Use tuples to find individual files; otherwise it will pick a default
+plot = yt.PhasePlot(ad, ('gas', "density"), "temperature", ['velocity_magnitude'],
+                    fractional = False, accumulation = False)
 plot.set_unit('velocity_magnitude', 'cm/s') #vely units weird
 plot.annotate_title("Velocity magnitude probability distribution, yes accumulation")
-plot.save("YT_Test_Plots/HDF5/magB")
+plot.save("YT_Test_Plots/HDF5/TestC")
+
+selection = ds.CutRegion([0 < ('index', 'x') and ('index', 'x') < 2.3*kpc])
+plot = yt.SlicePlot(selection, 'z', 'density')
+plot.save("YT_Test_Plots/HDF5/VectorSelection");
 
 # Streamlines.streamline(ds, dict['velx'], dict['vely'])
 # Streamlines.streamlines.integrate_through_volume()
