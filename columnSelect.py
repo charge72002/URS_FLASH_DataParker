@@ -35,7 +35,7 @@ for i in sorted(ds.derived_field_list):
 # select region
 ###############
 #https://yt-project.org/doc/analyzing/filtering.html#cut-regions
-ad = ds.all_data()
+
 
 bounds = {'xmin': -0.3e+22, 'xmax': 0.22e+22, 'ymin': min(ad['y']).value,'ymax': 0}
 
@@ -53,17 +53,26 @@ slc = yt.SlicePlot(ds, 'z', 'density', data_source=dsSelect)
 slc.annotate_title("Density, selected by temp > $0.35*10^3$")
 slc.save("YT_Test_Plots/HDF5/cutRegionE")
 
+###########
+# Lineplots
+###########
+filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0000"
+ds = yt.load(filename)
+ad = ds.all_data()
 #make a lineplot of the region
 #https://yt-project.org/doc/visualizing/plots.html#d-line-sampling
-slc = yt.LinePlot(ds, 'density', [-0.25e22, 0, 0], [-0.05e22, bounds['ymin'], 0], 512)
-slc.save("YT_Test_Plots/HDF5/density_line")
+# slc = yt.LinePlot(ds, 'density', [-0.25e22, 0, 0], [-0.05e22, bounds['ymin'], 0], 512)
+slc = yt.LinePlot(ds, 'density', [0, float(max(ad['y']).value), 0], [0, float(min(ad['y']).value), 0], 512)
+slc.save("YT_Test_Plots/HDF5/density_line_0000")
 
 #plot over time
 directory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/"
 # directory = "/Users/wongb/Documents/URS Data/diffusion_3e28/diffusion_3e28/"
 # directory = "/Users/wongb/Documents/URS Data/m1.5_c1_16x16_128x128_Rodrigues_Streaming/More Plot Files/"
 saveDirectory = "D:/URS_LargeData/SherryPlots"
-bounds = {'xmin': -0.3e+22, 'xmax': 0.22+22, 'ymin': min(ad['y']).value,'ymax': 0}
+# bounds = {'xmin': -0.3e+22, 'xmax': 0.22+22, 'ymin': min(ad['y']).value,'ymax': 0}
+conversion = 3.086e21
+bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': float(min(ad['y']).value),'ymax': 0}
 
 startTime = time.time()
 for fileName in os.listdir(directory):
@@ -73,6 +82,7 @@ for fileName in os.listdir(directory):
         timeStamp = fileName[len(fileName)-4: len(fileName)]
         dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
         dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+        dsSelect = dsSelect.cut_region("obj['temp'] > .25*10e3")
         slc = yt.LinePlot(ds, 'density', [-0.25e22, 0, 0], [-0.05e22, bounds['ymin'], 0], 512)
         if (not path.exists(saveDirectory+"/density_line/")):
             os.mkdir(saveDirectory+"/density_line/")
