@@ -30,21 +30,28 @@ for i in sorted(ds.field_list):
     print(i)
 for i in sorted(ds.derived_field_list):
     print(i)
-    
-#select region
+
+###############
+# select region
+###############
 #https://yt-project.org/doc/analyzing/filtering.html#cut-regions
 ad = ds.all_data()
 
-bounds = {'xmin': -0.3e+22, 'xmax': 0.22+22, 'ymin': min(ad['y']).value,'ymax': 0}
+bounds = {'xmin': -0.3e+22, 'xmax': 0.22e+22, 'ymin': min(ad['y']).value,'ymax': 0}
 
 dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
 dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
-# dsSelect = dsSelect.cut_region("obj['y'] < 0")
+dsSelect = dsSelect.cut_region("obj['temp'] > .25*10e3")
 slc = yt.SlicePlot(ds, 'z', 'density', data_source=dsSelect, 
-                   center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
-# slc.set_ylim('y', min(ad['y']), 0)
+                    center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
 slc.set_width(-min(ad['y']))
-slc.save("YT_Test_Plots/HDF5/cutRegion")
+
+dsSelect = ad.cut_region("obj['temp'] > .35*10e3")
+slc = yt.SlicePlot(ds, 'z', 'density', data_source=dsSelect)
+
+# slc.set_ylim('y', min(ad['y']), 0)
+slc.annotate_title("Density, selected by temp > $0.35*10^3$")
+slc.save("YT_Test_Plots/HDF5/cutRegionE")
 
 #make a lineplot of the region
 #https://yt-project.org/doc/visualizing/plots.html#d-line-sampling
