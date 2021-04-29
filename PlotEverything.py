@@ -83,7 +83,8 @@ plt.clf()
 # upperTick = round( np.amax(mass) )
 # bottomTick = round( np.amin(mass) )
 # log = np.logspace(bottomTick, upperTick, 8)
-plt.plot(timeStamps, np.log10(mass))
+# plt.plot(timeStamps, np.log10(mass))
+plt.plot(timeStamps, mass)
 # plt.semilogy(timeStamps, mass)
 # plt.set_yscale('log', base=10)
 
@@ -123,7 +124,7 @@ ad = ds.all_data()
 field = 'density'
 tempThreshold = ".35*10e3" #Format as string
 conversion = 3.086e21
-bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': float(min(ad['y']).value),'ymax': 0}
+bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': float(min(ad['y']).value),'ymax': 1.79040182984184e21}
 
 startTime = time.time()
 for fileName in os.listdir(directory):
