@@ -1,0 +1,3 @@
+[submodule "URS_Athena_Cpp"]
+	path = URS_Athena_Cpp
+	url = https://github.com/charge72002/URS_Athena_Cpp
