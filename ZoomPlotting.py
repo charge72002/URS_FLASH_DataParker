@@ -130,6 +130,8 @@ TFtable = np.logical_and((pow(10, 22) < posXarray), (posYarray < 0))
 # mag = np.hypot(velXarray, velYarray)
 # TFtable = np.logical_and(5*pow(10, 6) < mag))
 
+conversion = 3.086e21 #kpc to cm
+#TFtable = np.logical_and((-1.5*conversion<posXarray),(posXarray<0.5*conversion), (posYarray < 0))
 
 posXarray = posXarray[TFtable]
 posYarray = posYarray[TFtable]
@@ -137,7 +139,6 @@ densityArray = densityArray[TFtable]
 tempArray = tempArray[TFtable]
 velXarray = velXarray[TFtable]
 velYarray = velYarray[TFtable]
-
 
 #write files for easier access later
 # with open('m2_c1_0076_data3.csv', 'w', newline='') as csvfile:
@@ -157,13 +158,14 @@ print("Plotting...")
 
 
 """Plot Density"""
-z=tempArray
-plt.title("Temp (\N{DEGREE SIGN}K)")
-# plt.title("Density (g/$cm^3$)")
+z=densityArray
+# plt.title("Temp (\N{DEGREE SIGN}K)")
+plt.title("Density (g/$cm^3$)")
 
 lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
 plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
-
+#plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator())
+                
 upperTick = round( np.log10(z.max()) )
 bottomTick = round( np.log10(z.min()) )
 

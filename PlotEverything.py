@@ -157,6 +157,8 @@ print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print("Plotting done. Time elapsed (sec): " + str(time.time()-startTime))
 
+#Plot one zoomed image
+yt.toggle_interactivity()
 fileName = "parkerCRs_hdf5_plt_cnt_0076"
 filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0076"
 ds = yt.load(filename)
@@ -165,8 +167,8 @@ conversion = 3.086e21
 dsSelect = ad.include_inside('x',  3.5*conversion, 5*conversion)
 dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
 slc = yt.SlicePlot(ds, 'z', 'density', data_source=dsSelect);
+slc.display()
 slc.save(saveDirectory + "/density/" + "test")
-
 
 # =============================================================================
 # timeStamp = "0076"
