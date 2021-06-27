@@ -1,3 +1,6 @@
 [submodule "URS_Athena_Cpp"]
 	path = URS_Athena_Cpp
 	url = https://github.com/charge72002/URS_Athena_Cpp
+[submodule "URS_Cpp_Learning"]
+	path = URS_Cpp_Learning
+	url = https://github.com/charge72002/URS_Cpp_Learning
