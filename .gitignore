@@ -1,0 +1,9 @@
+*/
+*.csv
+*.gif
+
+!/Plots
+!/gifs
+!/YT_Test_Plots
+!URS_Athena_Cpp
+!old_python_script_versions

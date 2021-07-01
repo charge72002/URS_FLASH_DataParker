@@ -16,8 +16,6 @@ import matplotlib.colors as colors #for color mapping
 
 import yt
 
-filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0075"
-
 def removeDuplicates(arrayIN):
     listOUT = []
     for i in arrayIN:
@@ -117,7 +115,7 @@ def setup(fileName):
         return posXarray, posYarray
         # END OF METHOD
     
-    dict = fileInputTest(filename);
+    dict = fileInputTest(fileName);
     posXarray, posYarray = bigCoordinateSetup()
     
     """Velocity Setup"""
@@ -159,14 +157,19 @@ def setup(fileName):
     #         "densityArray" : densityArray, 
     #         "tempArray" : tempArray}
     #END OF METHOD
+    
+#%%
+    
+filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0084"
 
 out = setup(filename)
 posXarray = out[0]
 posYarray = out[1]
 velXarray = out[2]
 velYarray = out[3]
-tempArray = out[4]
-densityArray = out[5]
+densityArray = out[4]
+tempArray = out[5]
+
 #%%
 ds = yt.load(filename)
 ad = ds.all_data()
@@ -180,10 +183,11 @@ slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
 Xslices = removeDuplicates(posXarray).sort()
 # for x in Xslices:
 #     yt.linePlot(ds, 'density', [x, 0, 0], [x, ymin, 0], 512)
-slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0075")
+slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0080")
 
 #%%
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+x = closestNum(posXarray, 2.32838*pow(10, 22))
 #plot many temp plots
 filenames = []
 for t in range(65, 85):
@@ -194,21 +198,24 @@ for t in range(65, 85):
     #slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
     #slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_linePlot/00"+str(t))
     
-    ad = ds.all_data()
-    dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
-    dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
-    slc = yt.SlicePlot(ds, 'z', 'temp', data_source=dsSelect, 
-                   center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
-    slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
-    slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
-    slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_magStream_slicePlot/00"+str(t))
-
+    # ad = ds.all_data()
+    # dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+    # dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+    # slc = yt.SlicePlot(ds, 'z', 'temp', data_source=dsSelect, 
+    #                center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+    # slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
+    # slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
+    # slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_magStream_slicePlot/00"+str(t))
+    
+    slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
+    slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_linePlots/00"+str(t))
 
 #%%
 z=densityArray
-# plt.title("Temp (\N{DEGREE SIGN}K)")
-plt.title("Density (g/$cm^3$)")
 lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+# plt.title("Temp (\N{DEGREE SIGN}K)")
+plt.clf()
+plt.title("Density (g/$cm^3$)")
 plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 
 #%%

@@ -28,9 +28,10 @@ startTime = time.time()
 
 # # how to get a fixed colorbar???
 #slice plotting
-field = "(hrat)"
-field = ('gas', 'hrat')
-field = 'density'
+# field = "(hrat)"
+# field = ('gas', 'hrat')
+# field = 'density'
+field = 'temp'
 
 for fileName in os.listdir(directory):
     if(fileName.startswith("parkerCRs")):
@@ -44,8 +45,8 @@ for fileName in os.listdir(directory):
         # slc.annotate_velocity(factor=16)
         slc.annotate_title(timeStamp +" "+ field)
         plot = slc.plots[field]
-        slc.set_zlim('density', 1e-33, 1e-24)
-        # slc.set_zlim('temp', 1e2, 1e6)
+        # slc.set_zlim('density', 1e-33, 1e-24)
+        slc.set_zlim('temp', 1e2, 1e6)
         # slc.set_zlim(('gas', 'hrat'), 0.1e-27, 1e-28)
         # slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
 
@@ -58,6 +59,8 @@ beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print("Plotting done. Time elapsed (sec): " + str(time.time()-startTime))
+
+#%%
 
 #####################
 #Calculate total mass
@@ -99,7 +102,7 @@ fileName = "m2_c1_16x8_64x64"
 plt.savefig(saveDirectory + "/totalMassABC_"+fileName+".png")
 plt.show()
 
-
+#%%
 ##########
 # Make Gif
 ##########
@@ -113,18 +116,22 @@ clip = ImageSequenceClip(images, fps=5)
 clip.write_gif(saveDirectory + '/' + field + '.gif') #saves in outside folder
 clip.close()
 #DANGER!!! The line below removes the directory.
-shutil.rmtree(saveDirectory + '/' + field) #delete images to save space
+# shutil.rmtree(saveDirectory + '/' + field) #delete images to save space
 
+#%%
 ################
 # Zoom CORRECTLY
 ################
 
 ds = yt.load(directory+"parkerCRs_hdf5_plt_cnt_0000")
 ad = ds.all_data()
-field = 'density'
+# field = 'density'
+field = 'temp'
 tempThreshold = ".35*10e3" #Format as string
 conversion = 3.086e21
-bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': float(min(ad['y']).value),'ymax': 1.79040182984184e21}
+# bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': float(min(ad['y']).value),'ymax': 1.79040182984184e21}
+ylim = -1.79040182984184e21
+bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
 
 startTime = time.time()
 for fileName in os.listdir(directory):
@@ -145,9 +152,10 @@ for fileName in os.listdir(directory):
 
         slc.annotate_title(timeStamp +" "+ field)
         #streamlines
-        slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
+        # slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
         # plot = slc.plots[field]
-        slc.set_zlim('density', 1e-33, 1e-24)
+        # slc.set_zlim('density', 1e-33, 1e-24)
+        slc.set_zlim('temp', 1e2, 1e6)
         
         if (not path.exists(saveDirectory + "/" + field)):
             os.mkdir(saveDirectory + "/" + field)
@@ -157,6 +165,8 @@ print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print("Plotting done. Time elapsed (sec): " + str(time.time()-startTime))
 
+#%%
+#This actually opens a new display window with YT!!!
 #Plot one zoomed image
 yt.toggle_interactivity()
 fileName = "parkerCRs_hdf5_plt_cnt_0076"
@@ -164,11 +174,19 @@ filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/par
 ds = yt.load(filename)
 ad = ds.all_data()
 conversion = 3.086e21
-dsSelect = ad.include_inside('x',  3.5*conversion, 5*conversion)
+bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': float(min(ad['y']).value)+0.01e21,'ymax': -1.8e21}
+dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
 dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
-slc = yt.SlicePlot(ds, 'z', 'density', data_source=dsSelect);
+slc = yt.SlicePlot(ds, 'z', 'density', data_source=dsSelect, 
+                   center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
+slc.annotate_title("Gas Density, t = 760 Myr")
+#slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'})
+slc.hide_axes(draw_frame=True)
 slc.display()
-slc.save(saveDirectory + "/density/" + "test")
+#slc.save(saveDirectory + "/density/" + "test")
+slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/0076BetterDens")
+#%%
 
 # =============================================================================
 # timeStamp = "0076"
