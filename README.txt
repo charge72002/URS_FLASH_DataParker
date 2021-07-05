@@ -14,3 +14,8 @@ Files I did not write:
 athena_read.py          from Roark
 hrat_info_diskShells.py from Evan/Chad
 hrat_profile.py         from Evan/Chad
+
+DATA SOURCE:
+https://drive.google.com/drive/folders/1-Zdl8jrWZyhK9EKUcb13O2PCIgMtxeE9?usp=sharing
+This google drive will be erased when I leave UW-Madison, so make sure to back it up someplace else if necessary.
+The data comes Evan and Chad's simulations; Sherry you got it from Roark so check your email 29 Oct 2020 only one link works right now.
