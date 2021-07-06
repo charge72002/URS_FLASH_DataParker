@@ -14,7 +14,11 @@ import matplotlib.pyplot as plt #Same installation as above
 from matplotlib import ticker, cm #for log scale
 import matplotlib.colors as colors #for color mapping
 
+import os
+from os import path
+
 import yt
+from yt.data_objects.level_sets.api import Clump, find_clumps
 
 def removeDuplicates(arrayIN):
     listOUT = []
@@ -159,8 +163,9 @@ def setup(fileName):
     #END OF METHOD
     
 #%%
+### File setup
     
-filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0084"
+filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
 
 out = setup(filename)
 posXarray = out[0]
@@ -171,6 +176,7 @@ densityArray = out[4]
 tempArray = out[5]
 
 #%%
+### Plotting setup
 ds = yt.load(filename)
 ad = ds.all_data()
 ymax=float(max(ad['y']).value)
@@ -183,34 +189,70 @@ slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
 Xslices = removeDuplicates(posXarray).sort()
 # for x in Xslices:
 #     yt.linePlot(ds, 'density', [x, 0, 0], [x, ymin, 0], 512)
-slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0080")
+#slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0084")
 
 #%%
+### Try lineplots a little left or right
+
+dx = posXarray[1]-posXarray[0]
+ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080")
+
+
+x = closestNum(posXarray, 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
+for t in range(1, 10):
+    slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
+    slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0080-"+str(t))
+    x = x + dx
+    print("("+ str(t) + ", " + str(x) +")")
+    
+
+#%%
+### Plot many temp lineplots over time
+ylim = -1.79040182984184e21
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
-x = closestNum(posXarray, 2.32838*pow(10, 22))
-#plot many temp plots
+x = closestNum(posXarray, 2.32838*pow(10, 22)) #A
+x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
 filenames = []
+field = 'temp'
 for t in range(65, 85):
     filenames.append("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"
                      +str(t)) #t is a 2 digit number
     ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"
                      +str(t))
-    #slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
-    #slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_linePlot/00"+str(t))
-    
-    # ad = ds.all_data()
-    # dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
-    # dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
-    # slc = yt.SlicePlot(ds, 'z', 'temp', data_source=dsSelect, 
-    #                center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
-    # slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
-    # slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
-    # slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_magStream_slicePlot/00"+str(t))
     
     slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
-    slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_linePlots/00"+str(t))
+    slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_linePlotsB/00"+str(t))
 
 #%%
+### Plot many temp slices over time
+ylim = -1.79040182984184e21
+saveDirectory = "D:/URS_LargeData/SherryPlots"
+bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+field = 'temp'
+
+for t in range(65, 85):
+    ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"
+                     +str(t))
+    timeStamp = str(t)
+    ad = ds.all_data()
+    dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+    dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+        
+    slc = yt.SlicePlot(ds, 'z', field,  data_source=dsSelect,
+                       center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+    # slc.annotate_velocity(factor=16)
+    slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
+    slc.annotate_title(timeStamp +" "+ field)
+    slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
+    slc.set_zlim('temp', 1e2, 1e6)
+
+    if (not path.exists(saveDirectory + "/" + field)):
+            os.mkdir(saveDirectory + "/" + field)
+            
+    slc.save(saveDirectory + "/" + field + "/" + timeStamp)
+
+#%%
+### Matplotlib density for interactive window in Spyder
 z=densityArray
 lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
 # plt.title("Temp (\N{DEGREE SIGN}K)")
@@ -219,7 +261,16 @@ plt.title("Density (g/$cm^3$)")
 plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 
 #%%
-#find local extrema
+### Matplotlib temp for interactive window in Spyder 
+z=tempArray
+lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+# plt.title("Temp (\N{DEGREE SIGN}K)")
+plt.clf()
+plt.title("Temp (K)")
+plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
+
+#%%
+### find local extrema
 x = closestNum(posXarray, 2.32838*pow(10, 22))
 TFtable = (x==posXarray)
 tempSliceArray = tempArray[TFtable]
