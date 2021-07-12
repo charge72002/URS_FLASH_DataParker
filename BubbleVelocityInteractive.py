@@ -179,7 +179,7 @@ densityArray = out[4]
 tempArray = out[5]
 
 #%%
-### Plotting setup
+### Plotting setup?
 ds = yt.load(filename)
 ad = ds.all_data()
 ymax=float(max(ad['y']).value)
@@ -187,15 +187,10 @@ ymin=float(min(ad['y']).value)
 x = closestNum(posXarray, 2.32838*pow(10, 22))
 ylim = -1.79040182984184e21
 slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
-#slc.annotate_title("Temperature") #this doesn't work?
-#slc.annotate_title("LinePlot")
-Xslices = removeDuplicates(posXarray).sort()
-# for x in Xslices:
-#     yt.linePlot(ds, 'density', [x, 0, 0], [x, ymin, 0], 512)
-#slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0084")
+# Xslices = removeDuplicates(posXarray).sort()
 
 #%%
-### Try lineplots a little left or right
+### YT Try lineplots a little left or right
 
 dx = posXarray[1]-posXarray[0]
 ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080")
@@ -209,7 +204,7 @@ for t in range(1, 10):
     print("("+ str(t) + ", " + str(x) +")")
 
 #%%
-### annotate lines to visualize where these lineplots are
+### YT annotate lines to visualize where these lineplots are
 ylim = -1.79040182984184e21
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
 dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
@@ -218,25 +213,19 @@ slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
                    center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
 slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
 x = closestNum(posXarray, 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
-## learning to annotate lines. pain.
-# from bottom left (0, 0) to top right (1, 1)
-# slc.annotate_line((0.3, 0.4), (0.8, 0.9), coord_system="axis")
-# according to plot axes
-# slc.annotate_line((-0.3*(10**21), -0.4*(10**21)), (0.8*(10**21), 0.9*(10**21)), coord_system="plot",  plot_args={"color": "red"})
-# according to data axes
-# slc.annotate_line((x, -1.8*(10**21), 0), (x, -1.23*(10**22), 0), coord_system="data",  plot_args={"color": "green"})
 # slc.annotate_grids()
-# slc.annotate_cell_edges()
+# slc.annotate_cell_edges(line_width = 0.00001, alpha = 0.5)
 
+textx = x + (10**21)
 for t in range(1, 10):
     slc.annotate_line((x, -1.8*(10**21), 0), (x, -1.23*(10**22), 0), coord_system="data",  plot_args={"color": "blue"})
-    slc.annotate_marker((x, -2*(10**21), 0), coord_system="data")
-    slc.annotate_text((x, -2*(10**21), 0), str(x), coord_system="data")
+    slc.annotate_marker((x, (-2-0.5*t)*(10**21), 0), coord_system="data", plot_args={"color": "red"})
+    slc.annotate_text((textx, (-2-0.5*t)*(10**21), 0), str(x), coord_system="data", text_args={"color": "red"})
     x = x + dx
 slc.display()
 
 #%%
-### Plot many temp lineplots over time
+### YT Plot many temp lineplots over time
 ylim = -1.79040182984184e21
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
 x = closestNum(posXarray, 2.32838*pow(10, 22)) #A
@@ -253,7 +242,7 @@ for t in range(65, 85):
     slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_linePlotsB/00"+str(t))
 
 #%%
-### Plot many temp slices over time
+### YT Plot many temp slices over time
 ylim = -1.79040182984184e21
 saveDirectory = "D:/URS_LargeData/SherryPlots"
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
@@ -299,61 +288,36 @@ plt.title("Temp (K)")
 plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 
 #%%
-### find local extrema
-x = closestNum(posXarray, 2.32838*pow(10, 22))
-TFtable = (x==posXarray)
-tempSliceArray = tempArray[TFtable]
-posYSliceArray = posYarray[TFtable]
-combo = [(tempSliceArray[0], posYSliceArray[0])] #tie temp points with their Y values
-#insert numbers in ascending order
-for i in range(1, len(posYSliceArray)-1):
-    #print("loop " + str(i))
-    #add first term
-    # if i == 0: 
-    #     combo = np.append(combo, (tempSliceArray[i], posYSliceArray[i]))
-    # #add to front
-    # elif posYSliceArray[i] < posYSliceArray[0]: 
-    #     print("Adding " + (tempSliceArray[i], posYSliceArray[i]) + " at index 0")
-    #     combo = np.insert(combo, 0, (tempSliceArray[i], posYSliceArray[i]))
-    #add to end
-    if combo[len(combo)-1][1] < posYSliceArray[i]: 
-        # print("Adding " + str(tempSliceArray[i]) + ", " + str(posYSliceArray[i]) + " at index " + str(i))
-        # print("After " + str(combo[len(combo)-1][1]))
-        combo.append((tempSliceArray[i], posYSliceArray[i]))
-    #add to middle
-    else: 
-        #print("\t starting inner loop ")
-        for x in range(0, len(combo)-1): #sort based on Y value
-            # if x == len(combo):
-            #     if combo[x][1] > posYSliceArray[i]:
-            #         print("problem")
-            #     print("Adding (" + str(tempSliceArray[i]) + ", " + str(posYSliceArray[i]) + ") at index " + str(x))
-            #     print("After " + str(combo[x][1]))
-            #     combo.append((tempSliceArray[i], posYSliceArray[i]))
-            #     break
-            if combo[x][1] < posYSliceArray[i]:
-                # print("Adding (" + str(tempSliceArray[i]) + ", " + str(posYSliceArray[i]) + ") at index " + str(x))
-                # print("After " + str(combo[x][1]))
-                # print("Before " + str(combo[x+1][1]))
-                combo.insert(x+1, (tempSliceArray[i], posYSliceArray[i]))
-                break
-print(len(combo))
-#print(combo)
-comboArray = np.asarray(combo)
-posYthing = []
-numIssues = 0
-for i in range(0, len(comboArray)):
-    if comboArray[i-1][1] == comboArray[i][1]:
-        print(str(i) + ":e " + str(comboArray[i][1]) + ", " + str(comboArray[i][1]) + ", " + str(comboArray[i][1]))
-    elif comboArray[i-1][1] > comboArray[i][1]:
-        numIssues+=1
-        print(str(i) + ":  " + str(comboArray[i][1]) + ", " + str(comboArray[i][1]) + ", " + str(comboArray[i][1]))
-print(numIssues)
-#%%
+### Find local extrema
 extrema = signal.argrelextrema(tempArray, np.greater, order = 2000, axis=0)
 print(len(extrema[0]))
 print(extrema[0])
 
-extrema = signal.argrelmax(tempArray, np.greater, order = 2000)
-print(len(extrema[0]))
-print(extrema[0])
+#%%
+### Find local maxima
+x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
+TFselect = np.logical_and((posXarray == x), (posYarray<0))
+tempSlice = tempArray[TFselect]
+extrema = signal.argrelextrema(tempSlice, np.greater, order = 20)
+# extrema = signal.find_peaks(tempSlice, height = 2*(10**4))
+# extrema = signal.find_peaks(tempSlice, threshold = 2*(10**4))
+
+print("total peaks: " + str(len(extrema[0])))
+print("indices:     " + str(extrema[0]))
+print("temps:       " + str(tempSlice[extrema[0]]))
+print("y positions: " + str(posYarray[extrema[0]]))
+
+### Matplotlib has a mirrored version of the YT plots, but it works
+plt.clf()
+ySlice = posYarray[TFselect]
+# plt.subplot(2, 1, 1)
+plt.plot(ySlice, tempSlice)
+for y in posYarray[extrema[0]]:
+    plt.plot([y, y], [0, 10**6], lw=0.5) #lines [x1, x2] [y1, y2]
+plt.yscale('log')
+plt.title("local maxima; t=80, x=2.320198554711625e+22")
+plt.ylabel("temp(K)")
+plt.xlabel("y position(cm)")
+# plt.yscale('linear')
+plt.show()
+
