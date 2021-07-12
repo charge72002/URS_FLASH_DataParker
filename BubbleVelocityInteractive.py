@@ -19,6 +19,7 @@ from os import path
 
 import yt
 from yt.data_objects.level_sets.api import Clump, find_clumps
+yt.toggle_interactivity()
 
 def removeDuplicates(arrayIN):
     listOUT = []
@@ -102,6 +103,8 @@ def setup(fileName):
         #xOffset = int()
         stepX = dict['coordinates'][1][0] - dict['coordinates'][0][0]
         stepY = dict['coordinates'][2][1] - dict['coordinates'][1][1] #bug was here
+        print("X step: " + str(stepX))
+        print("Y step: " + str(stepY))
         
         for coord in dict['coordinates']:
             tempXlin = np.linspace(coord[0], coord[0] + stepX, 8)
@@ -196,15 +199,41 @@ Xslices = removeDuplicates(posXarray).sort()
 
 dx = posXarray[1]-posXarray[0]
 ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080")
-
+ad = ds.all_data()
 
 x = closestNum(posXarray, 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
 for t in range(1, 10):
-    slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
-    slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0080-"+str(t))
+    line = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
+    line.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0080-"+str(t))
     x = x + dx
     print("("+ str(t) + ", " + str(x) +")")
-    
+
+#%%
+### annotate lines to visualize where these lineplots are
+ylim = -1.79040182984184e21
+bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])  
+slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
+                   center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
+x = closestNum(posXarray, 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
+## learning to annotate lines. pain.
+# from bottom left (0, 0) to top right (1, 1)
+# slc.annotate_line((0.3, 0.4), (0.8, 0.9), coord_system="axis")
+# according to plot axes
+# slc.annotate_line((-0.3*(10**21), -0.4*(10**21)), (0.8*(10**21), 0.9*(10**21)), coord_system="plot",  plot_args={"color": "red"})
+# according to data axes
+# slc.annotate_line((x, -1.8*(10**21), 0), (x, -1.23*(10**22), 0), coord_system="data",  plot_args={"color": "green"})
+# slc.annotate_grids()
+# slc.annotate_cell_edges()
+
+for t in range(1, 10):
+    slc.annotate_line((x, -1.8*(10**21), 0), (x, -1.23*(10**22), 0), coord_system="data",  plot_args={"color": "blue"})
+    slc.annotate_marker((x, -2*(10**21), 0), coord_system="data")
+    slc.annotate_text((x, -2*(10**21), 0), str(x), coord_system="data")
+    x = x + dx
+slc.display()
 
 #%%
 ### Plot many temp lineplots over time
