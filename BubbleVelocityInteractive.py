@@ -35,6 +35,7 @@ def closestNum(arrayIN, targetNum):
     smallArray = removeDuplicates(arrayIN)
     currentDev = float("inf")
     result = float("inf")
+    #TODO: if you wanna have fun make this a binary search thing
     for i in smallArray:
         newDev = abs(targetNum-i)
         if(newDev < currentDev):
@@ -155,14 +156,30 @@ def setup(fileName):
     tempArray = np.asarray(temp)
     tempArray = tempArray.flatten()
     
-    return (posXarray, posYarray, velXarray, velYarray, densityArray, tempArray)
+    """"Mag Setup"""
+    magX = [] #list
+    for thing in dict['magx']:
+        magX.append(thing) #shape=(1, 8, 8)
+    magXarray = np.asarray(magX)
+    magXarray = magXarray.flatten()
     
-    # return {"posXarray" : posXarray, 
-    #         "posYarray" : posYarray, 
-    #         "velXarray" : velXarray, 
-    #         "velYarray" : velYarray, 
-    #         "densityArray" : densityArray, 
-    #         "tempArray" : tempArray}
+    magY = [] #list
+    for thing in dict['magx']:
+        magY.append(thing) #shape=(1, 8, 8)
+    magYarray = np.asarray(magY)
+    magYarray = magYarray.flatten()
+
+    
+    # return (posXarray, posYarray, velXarray, velYarray, densityArray, tempArray, magXarray)
+    
+    return {"posXarray" : posXarray, 
+            "posYarray" : posYarray, 
+            "velXarray" : velXarray, 
+            "velYarray" : velYarray, 
+            "densityArray" : densityArray, 
+            "tempArray" : tempArray,
+            "magXarray" : magXarray,
+            "magYarray" : magYarray}
     #END OF METHOD
     
 #%%
@@ -171,14 +188,15 @@ def setup(fileName):
 filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
 
 out = setup(filename)
-posXarray = out[0]
-posYarray = out[1]
-velXarray = out[2]
-velYarray = out[3]
-densityArray = out[4]
-tempArray = out[5]
+posXarray = out["posXarray"]
+posYarray = out["posYarray"]
+velXarray = out["velXarray"]
+velYarray = out["velYarray"]
+densityArray = out["densityArray"]
+tempArray = out["tempArray"]
+magXarray = out["magXarray"]
+magYarray = out["magYarray"]
 
-#%%
 ### Plotting setup?
 ds = yt.load(filename)
 ad = ds.all_data()
@@ -186,14 +204,14 @@ ymax=float(max(ad['y']).value)
 ymin=float(min(ad['y']).value)
 x = closestNum(posXarray, 2.32838*pow(10, 22))
 ylim = -1.79040182984184e21
-slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
+# slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
 # Xslices = removeDuplicates(posXarray).sort()
 
 #%%
 ### YT Try lineplots a little left or right
 
 dx = posXarray[1]-posXarray[0]
-ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080")
+ds = yt.load(filename)
 ad = ds.all_data()
 
 x = closestNum(posXarray, 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
@@ -296,10 +314,11 @@ print(extrema[0])
 #%%
 ### Find local maxima
 x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
-TFselect = np.logical_and((posXarray == x), (posYarray<0))
+TFselect = np.logical_and((posXarray == x), (posYarray<0), (posYarray>-1.0*(10**22)))
 tempSlice = tempArray[TFselect]
-extrema = signal.argrelextrema(tempSlice, np.greater, order = 20)
-# extrema = signal.find_peaks(tempSlice, height = 2*(10**4))
+tempSlice = np.array(tempSlice)
+# extrema = signal.argrelmax(tempSlice, order = 20)
+extrema = signal.find_peaks(tempSlice, height = 2*(10**4))
 # extrema = signal.find_peaks(tempSlice, threshold = 2*(10**4))
 
 print("total peaks: " + str(len(extrema[0])))
@@ -321,3 +340,83 @@ plt.xlabel("y position(cm)")
 # plt.yscale('linear')
 plt.show()
 
+#%%
+### Experiment with clumps
+ds = yt.load(filename)
+ylim = -1.79040182984184e21
+bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+ad = ds.all_data()
+dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+    
+#%%
+### Clumps cont'd
+c_min = 10 ** np.floor(np.log10(dsSelect['temp']).min())
+c_max = 10 ** np.floor(np.log10(dsSelect['temp']).max() + 1)
+
+master_clump = Clump(dsSelect, 'temp')
+master_clump.add_validator("min_cells", 20)
+## this takes a VERY long time!
+find_clumps(master_clump, c_min, c_max, 2.0)
+leaf_clumps = master_clump.leaves
+
+prj = yt.ProjectionPlot(ds, "z", 'temp', center="c", width=(20, "kpc"))
+prj.annotate_clumps(leaf_clumps)
+
+slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/clump_test_80B")
+
+
+
+#%%
+### magx inflection points
+# ylim = -2.5e21
+ylim = -1.79040182984184e21
+x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
+TFselect = np.logical_and((posXarray == x), (posYarray<ylim), (posYarray>-1.0*(10**22)))
+tempSlice = tempArray[TFselect]
+ySlice = posYarray[TFselect]
+magSlice = magXarray[TFselect]
+magSlice = np.array(magSlice)
+magDerivative = np.diff(magSlice, axis=0)
+magDerivative = np.insert(magDerivative, 0, 0) #to match shape
+
+plt.clf()
+# plt.plot(ySlice, magSlice)
+# plt.plot(ySlice, magDerivative)
+# plt.plot([-(10**22), ylim], [0, 0], lw=0.5) #lines [x1, x2] [y1, y2]
+#G = curl([ad['mag_pres'], 0])
+
+extrema = signal.argrelextrema(magDerivative, comparator=np.greater_equal, order=20)
+print("total peaks: " + str(len(extrema[0])))
+print("indices:     " + str(extrema[0]))
+print("temps:       " + str(tempSlice[extrema[0]]))
+print("y positions: " + str(posYarray[extrema[0]]))
+
+fig, axs = plt.subplots(2)
+fig.suptitle('MagX, MagX Derivative')
+axs[0].plot(ySlice, magSlice)
+axs[1].plot(ySlice, magDerivative)
+for y in posYarray[extrema[0]]:
+    axs[1].plot([y, y], [0, np.max(magDerivative)], lw=0.5) #lines [x1, x2] [y1, y2]
+    
+#%% 
+### Experiment with curl?
+ds = yt.load(filename)
+# ad = ds.all_data()
+
+# slc = yt.SlicePlot(ds, 'z', "magx")
+# slc.colorbar()
+# slc.display()
+
+def curl(x, y):
+    #for our purposes, magX and magY
+    xy = (x, y)
+    ydx = np.gradient(xy, axis=0)[1]
+    xdy = np.gradient(xy, axis=1)[0]
+    result = ydx - xdy
+    return result
+
+plt.clf
+curl = np.asarray(curl(magXarray, magYarray))
+# plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
+plt.tricontourf(posXarray, posYarray, curl)

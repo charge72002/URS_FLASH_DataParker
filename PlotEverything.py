@@ -185,6 +185,10 @@ slc.annotate_title("Gas Density, t = 760 Myr")
 slc.hide_axes(draw_frame=True)
 slc.display()
 #slc.save(saveDirectory + "/density/" + "test")
+
+
+slc = yt.SlicePlot(ds, 'z', 'crpres')
+
 slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/0076BetterDens")
 #%%
 
