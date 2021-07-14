@@ -386,7 +386,9 @@ plt.clf()
 # plt.plot([-(10**22), ylim], [0, 0], lw=0.5) #lines [x1, x2] [y1, y2]
 #G = curl([ad['mag_pres'], 0])
 
-extrema = signal.argrelextrema(magDerivative, comparator=np.greater_equal, order=20)
+# extrema = signal.argrelextrema(magDerivative, comparator=np.greater_equal, order=20)
+extrema = signal.argrelmax(magDerivative, order = 20)
+# extrema = signal.find_peaks(magDerivative)
 print("total peaks: " + str(len(extrema[0])))
 print("indices:     " + str(extrema[0]))
 print("temps:       " + str(tempSlice[extrema[0]]))
@@ -410,7 +412,7 @@ ds = yt.load(filename)
 
 def curl(x, y):
     #for our purposes, magX and magY
-    xy = (x, y)
+    xy = np.array([x, y])
     ydx = np.gradient(xy, axis=0)[1]
     xdy = np.gradient(xy, axis=1)[0]
     result = ydx - xdy
@@ -418,5 +420,10 @@ def curl(x, y):
 
 plt.clf
 curl = np.asarray(curl(magXarray, magYarray))
+
+ydx = np.gradient([magYarray, posXarray], axis=1)[0]
+xdy = np.gradient([magXarray, posYarray], axis=1)[0]
+curl = ydx - xdy
+
 # plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 plt.tricontourf(posXarray, posYarray, curl)
