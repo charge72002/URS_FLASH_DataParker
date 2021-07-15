@@ -185,7 +185,8 @@ def setup(fileName):
 #%%
 ### File setup
     
-filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+# filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
 
 out = setup(filename)
 posXarray = out["posXarray"]
@@ -331,7 +332,7 @@ plt.clf()
 ySlice = posYarray[TFselect]
 # plt.subplot(2, 1, 1)
 plt.plot(ySlice, tempSlice)
-for y in posYarray[extrema[0]]:
+for y in ySlice[extrema[0]]:
     plt.plot([y, y], [0, 10**6], lw=0.5) #lines [x1, x2] [y1, y2]
 plt.yscale('log')
 plt.title("local maxima; t=80, x=2.320198554711625e+22")
@@ -341,34 +342,7 @@ plt.xlabel("y position(cm)")
 plt.show()
 
 #%%
-### Experiment with clumps
-ds = yt.load(filename)
-ylim = -1.79040182984184e21
-bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
-ad = ds.all_data()
-dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
-dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
-    
-#%%
-### Clumps cont'd
-c_min = 10 ** np.floor(np.log10(dsSelect['temp']).min())
-c_max = 10 ** np.floor(np.log10(dsSelect['temp']).max() + 1)
-
-master_clump = Clump(dsSelect, 'temp')
-master_clump.add_validator("min_cells", 20)
-## this takes a VERY long time!
-find_clumps(master_clump, c_min, c_max, 2.0)
-leaf_clumps = master_clump.leaves
-
-prj = yt.ProjectionPlot(ds, "z", 'temp', center="c", width=(20, "kpc"))
-prj.annotate_clumps(leaf_clumps)
-
-slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/clump_test_80B")
-
-
-
-#%%
-### magx inflection points
+### Maxima: magx inflection points
 # ylim = -2.5e21
 ylim = -1.79040182984184e21
 x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
@@ -387,19 +361,21 @@ plt.clf()
 #G = curl([ad['mag_pres'], 0])
 
 # extrema = signal.argrelextrema(magDerivative, comparator=np.greater_equal, order=20)
-extrema = signal.argrelmax(magDerivative, order = 20)
-# extrema = signal.find_peaks(magDerivative)
+# extrema = signal.argrelmax(magDerivative, order = 20)
+extrema = signal.find_peaks(magDerivative, prominence=(10**-8))
+prominences = signal.peak_prominences(magDerivative, extrema[0])
 print("total peaks: " + str(len(extrema[0])))
 print("indices:     " + str(extrema[0]))
-print("temps:       " + str(tempSlice[extrema[0]]))
+print("magDeriv:    " + str(magDerivative[extrema[0]]))
 print("y positions: " + str(posYarray[extrema[0]]))
 
 fig, axs = plt.subplots(2)
-fig.suptitle('MagX, MagX Derivative')
+fig.suptitle('MagX, MagX Derivative, x='+str(x))
 axs[0].plot(ySlice, magSlice)
 axs[1].plot(ySlice, magDerivative)
-for y in posYarray[extrema[0]]:
-    axs[1].plot([y, y], [0, np.max(magDerivative)], lw=0.5) #lines [x1, x2] [y1, y2]
+for y in ySlice[extrema[0]]:
+    axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #lines [x1, x2] [y1, y2]
+    axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #prominence lines
     
 #%% 
 ### Experiment with curl?
@@ -427,3 +403,28 @@ curl = ydx - xdy
 
 # plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 plt.tricontourf(posXarray, posYarray, curl)
+
+#%%
+### Experiment with clumps
+ds = yt.load(filename)
+ylim = -1.79040182984184e21
+bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+ad = ds.all_data()
+dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+    
+#%%
+### Clumps cont'd
+c_min = 10 ** np.floor(np.log10(dsSelect['temp']).min())
+c_max = 10 ** np.floor(np.log10(dsSelect['temp']).max() + 1)
+
+master_clump = Clump(dsSelect, 'temp')
+master_clump.add_validator("min_cells", 20)
+## this takes a VERY long time!
+find_clumps(master_clump, c_min, c_max, 2.0)
+leaf_clumps = master_clump.leaves
+
+prj = yt.ProjectionPlot(ds, "z", 'temp', center="c", width=(20, "kpc"))
+prj.annotate_clumps(leaf_clumps)
+
+slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/clump_test_80B")
