@@ -1,9 +1,11 @@
 */
 *.csv
 *.gif
+.DS_Store
 
 !/Plots
 !/gifs
 !/YT_Test_Plots
+!/bubble_velocity
 !URS_Athena_Cpp
 !old_python_script_versions

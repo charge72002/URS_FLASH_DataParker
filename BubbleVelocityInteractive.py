@@ -16,6 +16,7 @@ import matplotlib.colors as colors #for color mapping
 
 import os
 from os import path
+import csv
 
 import yt
 from yt.data_objects.level_sets.api import Clump, find_clumps
@@ -316,6 +317,7 @@ print(extrema[0])
 ### Find local maxima
 x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
 TFselect = np.logical_and((posXarray == x), (posYarray<0), (posYarray>-1.0*(10**22)))
+ySlice = out['posYarray'][TFselect]
 tempSlice = tempArray[TFselect]
 tempSlice = np.array(tempSlice)
 # extrema = signal.argrelmax(tempSlice, order = 20)
@@ -325,7 +327,7 @@ extrema = signal.find_peaks(tempSlice, height = 2*(10**4))
 print("total peaks: " + str(len(extrema[0])))
 print("indices:     " + str(extrema[0]))
 print("temps:       " + str(tempSlice[extrema[0]]))
-print("y positions: " + str(posYarray[extrema[0]]))
+print("y positions: " + str(ySlice[extrema[0]]))
 
 ### Matplotlib has a mirrored version of the YT plots, but it works
 plt.clf()
@@ -343,13 +345,19 @@ plt.show()
 
 #%%
 ### Maxima: magx inflection points
+
+t=80
+# filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"+str(t)
+out = setup(filename)
+    
 # ylim = -2.5e21
 ylim = -1.79040182984184e21
-x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
-TFselect = np.logical_and((posXarray == x), (posYarray<ylim), (posYarray>-1.0*(10**22)))
-tempSlice = tempArray[TFselect]
-ySlice = posYarray[TFselect]
-magSlice = magXarray[TFselect]
+x = closestNum(out['posXarray'], 2.32019*pow(10, 22)) #B
+TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>-1.0*(10**22)))
+tempSlice = out['tempArray'][TFselect]
+ySlice = out['posYarray'][TFselect]
+magSlice = out['magXarray'][TFselect]
 magSlice = np.array(magSlice)
 magDerivative = np.diff(magSlice, axis=0)
 magDerivative = np.insert(magDerivative, 0, 0) #to match shape
@@ -362,12 +370,12 @@ plt.clf()
 
 # extrema = signal.argrelextrema(magDerivative, comparator=np.greater_equal, order=20)
 # extrema = signal.argrelmax(magDerivative, order = 20)
-extrema = signal.find_peaks(magDerivative, prominence=(10**-8))
+extrema = signal.find_peaks(magDerivative, prominence=(5*(10**-9)))
 prominences = signal.peak_prominences(magDerivative, extrema[0])
 print("total peaks: " + str(len(extrema[0])))
 print("indices:     " + str(extrema[0]))
 print("magDeriv:    " + str(magDerivative[extrema[0]]))
-print("y positions: " + str(posYarray[extrema[0]]))
+print("y positions: " + str(ySlice[extrema[0]]))
 
 fig, axs = plt.subplots(2)
 fig.suptitle('MagX, MagX Derivative, x='+str(x))
@@ -376,7 +384,54 @@ axs[1].plot(ySlice, magDerivative)
 for y in ySlice[extrema[0]]:
     axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #lines [x1, x2] [y1, y2]
     axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #prominence lines
+fig.savefig("/Users/bwong/URS_FLASH_DataParker/bubble_velocity/col12_t" + str(t))
+#%%
+### Iterate
+total_peaks = []
+Ypos = []
+prominences = []
+
+x = closestNum(out['posXarray'], 2.32019*pow(10, 22))
+for t in range(65, 85):
+    # filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+    filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"+str(t)
+    out = setup(filename)
     
+    #set up fields
+    TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>-1.0*(10**22)))
+    tempSlice = out['tempArray'][TFselect]
+    ySlice = out['posYarray'][TFselect]
+    magSlice = out['magXarray'][TFselect]
+    magSlice = np.array(magSlice)
+    magDerivative = np.diff(magSlice, axis=0)
+    magDerivative = np.insert(magDerivative, 0, 0) #to match shape
+    
+    extrema = signal.find_peaks(magDerivative, prominence=(5*(10**-9)))
+    total_peaks.append(len(extrema[0]))
+    Ypos.append(ySlice[extrema[0]])
+    prominences.append(signal.peak_prominences(magDerivative, extrema[0])[0])
+    
+    fig, axs = plt.subplots(2)
+    fig.suptitle('MagX, MagX Derivative, t='+ str(t) +', x='+str(x))
+    axs[0].plot(ySlice, magSlice)
+    axs[1].plot(ySlice, magDerivative)
+    for y in ySlice[extrema[0]]:
+        axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #lines [x1, x2] [y1, y2]
+        axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #prominence lines
+    fig.savefig("/Users/bwong/URS_FLASH_DataParker/bubble_velocity/col12_t" + str(t))
+
+#%%
+### save important data as .csv
+with open('/Users/bwong/URS_FLASH_DataParker/bubble_velocity/col12.csv', 'w', newline='') as csvfile:
+    fieldnames = ['t', '#peaks', 'Ypos', 'prominences']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+
+    for i in range(0, len(total_peaks)):
+        writer.writerow({'t': t+65, 
+                         '#peaks': total_peaks[i],
+                         'Ypos': Ypos[i], 
+                         'prominences': prominences[i]})
 #%% 
 ### Experiment with curl?
 ds = yt.load(filename)
