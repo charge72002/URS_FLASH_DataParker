@@ -187,7 +187,11 @@ def setup(fileName):
 ### File setup
     
 # filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+# filedirectory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files"
+
+## Mac filenames
 filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+filedirectory = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files"
 
 out = setup(filename)
 posXarray = out["posXarray"]
@@ -253,9 +257,9 @@ x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
 filenames = []
 field = 'temp'
 for t in range(65, 85):
-    filenames.append("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"
+    filenames.append(filedirectory + "/parkerCRs_hdf5_plt_cnt_00" +
                      +str(t)) #t is a 2 digit number
-    ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"
+    ds = yt.load(filedirectory + "/parkerCRs_hdf5_plt_cnt_00" +
                      +str(t))
     
     slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
@@ -269,8 +273,7 @@ bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad
 field = 'temp'
 
 for t in range(65, 85):
-    ds = yt.load("/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"
-                     +str(t))
+    ds = yt.load(filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t))
     timeStamp = str(t)
     ad = ds.all_data()
     dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
@@ -377,16 +380,47 @@ print("indices:     " + str(extrema[0]))
 print("magDeriv:    " + str(magDerivative[extrema[0]]))
 print("y positions: " + str(ySlice[extrema[0]]))
 
+#%%
 fig, axs = plt.subplots(2)
-fig.suptitle('MagX, MagX Derivative, x='+str(x))
+fig.subtitle('MagX, MagX Derivative, x='+str(x))
 axs[0].plot(ySlice, magSlice)
+axs[0].plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
 axs[1].plot(ySlice, magDerivative)
 for y in ySlice[extrema[0]]:
     axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #lines [x1, x2] [y1, y2]
     axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #prominence lines
 fig.savefig("/Users/bwong/URS_FLASH_DataParker/bubble_velocity/col12_t" + str(t))
+
 #%%
-### Iterate
+# matplotlib plot position onto full, large slice
+fig, axs = plt.subplots(1)
+axs.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
+for y in ySlice[extrema[0]]:
+    axs.plot([x, x],[bounds['ymin'], bounds['ymax']], lw=1, color='red')
+    axs.plot([bounds['xmin'], bounds['xmax']], [y, y], lw=1, color='red')
+
+#%%
+# YT plot position onto slice
+# select col 12
+bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+ad = ds.all_data()
+dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+z=tempArray
+lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
+                       center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
+# slc.annotate_title(timeStamp +" "+ field)
+slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
+slc.set_zlim('temp', 1e2, 1e6)
+# ann_slc = plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev)
+# plt.title("Temp (\N{DEGREE SIGN}K)")
+for y in ySlice[extrema[0]]:
+    slc.annotate_line((x, bounds['ymin'], 0), (x, bounds['ymax'], 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
+    slc.annotate_line((bounds['xmin'], y, 0), (bounds['xmax'], y, 0), coord_system="data",  plot_args={"color": "red",  "linewidth": 1})
+#%%
+### Iterate peak detection through time
 total_peaks = []
 Ypos = []
 prominences = []
