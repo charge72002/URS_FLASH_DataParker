@@ -4,6 +4,17 @@ Created on Fri Jun 18 19:21:31 2021
 
 @author: Sherry Wong
 """
+#%%
+## Windows Filenames
+filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+filedirectory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files"
+pwd = "/Users/wongb/Documents/Python_Scripts"
+#%%
+## Mac filenames
+filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+filedirectory = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files"
+pwd = "???"
+#%%
 import h5py
 import numpy as np
 import scipy
@@ -21,6 +32,12 @@ import csv
 import yt
 from yt.data_objects.level_sets.api import Clump, find_clumps
 yt.toggle_interactivity()
+
+import sys
+sys.path.insert(0, pwd)
+# Sherry packages
+import estimate_bubbleVelocity as est
+import hdf5_parser
 
 def removeDuplicates(arrayIN):
     listOUT = []
@@ -47,153 +64,9 @@ def closestNum(arrayIN, targetNum):
     return result
     #END OF METHOD
 
-def setup(fileName):
-    def fileInputTest(fileName):
-        f2 = h5py.File(fileName, 'r')
-    
-        print("\nReading file:")
-        print(f2) #general info
-        print(f2.attrs)
-        print("\nKeys:")
-        print(f2.keys())
-    
-        #print("\nLoading relevant data fields:")
-        #print(f2['coordinates'])
-        coords = f2['coordinates']
-    
-        cray = f2['cray']
-        dens = f2['dens']
-        magx = f2['magx']
-        magy = f2['magy']
-        magz = f2['magz']
-        pres = f2['pres']
-        velx = f2['velx']
-        vely = f2['vely']
-        velz = f2['velz']
-        temp = f2['temp']
-    
-        print() #whitespace
-        #print(f2.attrs['Coordinates']).decode("utf-8")
-    
-        #for i in f2.attrs["VariableNames"]:
-        #    print(i)
-    
-        #TODO: Find individual data keys and examine their data types.
-    
-        dict = {
-            "coordinates" : coords,
-            "cray_pressure" : cray,
-            "density" : dens,
-            "magx" : magx,
-            "magy" : magy,
-            "magz" : magz,
-            "pressure" : pres,
-            "velx" : velx,
-            "vely" : vely,
-            "velz" : velz,
-            "temp" : temp
-        }
-        return dict
-        #END OF METHOD
-        
-    """Sets up coordinates for 16384 * 64 data points. Returns posXarray, posYarray"""
-    def bigCoordinateSetup():
-        #Make lists of individual data columns
-        posX = [] #list
-        posY = [] #list
-        
-        #xOffset = int()
-        stepX = dict['coordinates'][1][0] - dict['coordinates'][0][0]
-        stepY = dict['coordinates'][2][1] - dict['coordinates'][1][1] #bug was here
-        print("X step: " + str(stepX))
-        print("Y step: " + str(stepY))
-        
-        for coord in dict['coordinates']:
-            tempXlin = np.linspace(coord[0], coord[0] + stepX, 8)
-            tempYlin = np.linspace(coord[1], coord[1] + stepY, 8)
-            tempMeshgrid = np.meshgrid(tempXlin, tempYlin)
-            posX.append(tempMeshgrid[0])
-            posY.append(tempMeshgrid[1]) #bug is not here
-            #print(coord)
-                
-        # print("Length of posX: " + str(len(posX)))
-        posXarray, posYarray = (np.asarray(posX), np.asarray(posY))
-        # print("Length of posX flattened: " + str(len(posXarray.flatten())))
-        posXarray = posXarray.flatten()
-        posYarray = posYarray.flatten()
-        return posXarray, posYarray
-        # END OF METHOD
-    
-    dict = fileInputTest(fileName);
-    posXarray, posYarray = bigCoordinateSetup()
-    
-    """Velocity Setup"""
-    velX = []
-    velY = []
-    for x in dict['velx']:
-        #velX.append(x[0, 0, 0])
-        velX.append(x)
-    for y in dict['vely']:
-        #velY.append(y[0, 0, 0])
-        velY.append(y)
-    velXarray = np.asarray(velX)
-    velYarray = np.asarray(velY)
-    
-    velXarray = velXarray.flatten()
-    velYarray = velYarray.flatten()
-    
-    """Density Setup"""
-    density = [] #list
-    #print(dict['density'])
-    for dens in dict['density']:
-        density.append(dens) #shape=(1, 8, 8)
-    densityArray = np.asarray(density)
-    densityArray = densityArray.flatten()
-    
-    """"Temp Setup"""
-    temp = [] #list
-    for thing in dict['temp']:
-        temp.append(thing) #shape=(1, 8, 8)
-    tempArray = np.asarray(temp)
-    tempArray = tempArray.flatten()
-    
-    """"Mag Setup"""
-    magX = [] #list
-    for thing in dict['magx']:
-        magX.append(thing) #shape=(1, 8, 8)
-    magXarray = np.asarray(magX)
-    magXarray = magXarray.flatten()
-    
-    magY = [] #list
-    for thing in dict['magx']:
-        magY.append(thing) #shape=(1, 8, 8)
-    magYarray = np.asarray(magY)
-    magYarray = magYarray.flatten()
-
-    
-    # return (posXarray, posYarray, velXarray, velYarray, densityArray, tempArray, magXarray)
-    
-    return {"posXarray" : posXarray, 
-            "posYarray" : posYarray, 
-            "velXarray" : velXarray, 
-            "velYarray" : velYarray, 
-            "densityArray" : densityArray, 
-            "tempArray" : tempArray,
-            "magXarray" : magXarray,
-            "magYarray" : magYarray}
-    #END OF METHOD
-    
 #%%
 ### File setup
-    
-# filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
-# filedirectory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files"
-
-## Mac filenames
-filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
-filedirectory = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files"
-
-out = setup(filename)
+out = hdf5_parser.setup(filename)
 posXarray = out["posXarray"]
 posYarray = out["posYarray"]
 velXarray = out["velXarray"]
