@@ -13,14 +13,14 @@ pwd = "/Users/wongb/Documents/Python_Scripts"
 ## Mac filenames
 filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
 filedirectory = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files"
-pwd = "???"
+pwd = "/Users/bwong/URS_FLASH_DataParker"
 #%%
-import h5py
+# import h5py
 import numpy as np
-import scipy
+# import scipy
 from scipy import signal
 
-import matplotlib
+# import matplotlib
 import matplotlib.pyplot as plt #Same installation as above
 from matplotlib import ticker, cm #for log scale
 import matplotlib.colors as colors #for color mapping
@@ -64,6 +64,16 @@ def closestNum(arrayIN, targetNum):
     return result
     #END OF METHOD
 
+## returns the indices right before a sign flip
+## i.e. findSignFlips([-3, -1, 1, 3, -2]) returns [1, 3]
+def findSignFlips(arrayIN):
+    result = []
+    prevNum = arrayIN[0]
+    for index in range(0, len(arrayIN)):
+       if prevNum < 0 and arrayIN[index] > 0: result.append(index-1)
+       elif prevNum > 0 and arrayIN[index] < 0: result.append(index-1)
+       prevNum = arrayIN[index]
+    return np.array(result)
 #%%
 ### File setup
 out = hdf5_parser.setup(filename)
@@ -83,20 +93,19 @@ ymax=float(max(ad['y']).value)
 ymin=float(min(ad['y']).value)
 x = closestNum(posXarray, 2.32838*pow(10, 22))
 ylim = -1.79040182984184e21
+dx = posXarray[1]-posXarray[0]
 # slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
 # Xslices = removeDuplicates(posXarray).sort()
 
 #%%
 ### YT Try lineplots a little left or right
-
-dx = posXarray[1]-posXarray[0]
 ds = yt.load(filename)
 ad = ds.all_data()
 
 x = closestNum(posXarray, 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
 for t in range(1, 10):
     line = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
-    line.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp/0080-"+str(t))
+    line.save(pwd + "/YT_Test_Plots/HDF5/temp/0080-"+str(t))
     x = x + dx
     print("("+ str(t) + ", " + str(x) +")")
 
@@ -130,10 +139,8 @@ x = closestNum(posXarray, 2.32019*pow(10, 22)) #B
 filenames = []
 field = 'temp'
 for t in range(65, 85):
-    filenames.append(filedirectory + "/parkerCRs_hdf5_plt_cnt_00" +
-                     +str(t)) #t is a 2 digit number
-    ds = yt.load(filedirectory + "/parkerCRs_hdf5_plt_cnt_00" +
-                     +str(t))
+    filenames.append(filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t)) #t is a 2 digit number
+    ds = yt.load(filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t))
     
     slc = yt.LinePlot(ds, 'temp', [x, ylim, 0], [x, ymin, 0], 512)
     slc.save("/Users/wongb/Documents/Python_Scripts/YT_Test_Plots/HDF5/temp_linePlotsB/00"+str(t))
@@ -170,6 +177,7 @@ for t in range(65, 85):
 z=densityArray
 lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
 # plt.title("Temp (\N{DEGREE SIGN}K)")
+# plt.close()
 plt.clf()
 plt.title("Density (g/$cm^3$)")
 plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
@@ -179,6 +187,7 @@ plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = l
 z=tempArray
 lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
 # plt.title("Temp (\N{DEGREE SIGN}K)")
+# plt.close()
 plt.clf()
 plt.title("Temp (K)")
 plt.tricontourf(posXarray, posYarray, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
@@ -206,6 +215,7 @@ print("temps:       " + str(tempSlice[extrema[0]]))
 print("y positions: " + str(ySlice[extrema[0]]))
 
 ### Matplotlib has a mirrored version of the YT plots, but it works
+# plt.close()
 plt.clf()
 ySlice = posYarray[TFselect]
 # plt.subplot(2, 1, 1)
@@ -223,21 +233,21 @@ plt.show()
 ### Maxima: magx inflection points
 
 t=80
-# filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
-filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"+str(t)
-out = setup(filename)
+filenameB = filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t)
+out = hdf5_parser.setup(filenameB)
     
 # ylim = -2.5e21
 ylim = -1.79040182984184e21
 x = closestNum(out['posXarray'], 2.32019*pow(10, 22)) #B
 TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>-1.0*(10**22)))
+
 tempSlice = out['tempArray'][TFselect]
 ySlice = out['posYarray'][TFselect]
-magSlice = out['magXarray'][TFselect]
-magSlice = np.array(magSlice)
+magSlice = np.array( out['magXarray'][TFselect] )
 magDerivative = np.diff(magSlice, axis=0)
 magDerivative = np.insert(magDerivative, 0, 0) #to match shape
 
+# plt.close()
 plt.clf()
 # plt.plot(ySlice, magSlice)
 # plt.plot(ySlice, magDerivative)
@@ -246,16 +256,66 @@ plt.clf()
 
 # extrema = signal.argrelextrema(magDerivative, comparator=np.greater_equal, order=20)
 # extrema = signal.argrelmax(magDerivative, order = 20)
-extrema = signal.find_peaks(magDerivative, prominence=(5*(10**-9)))
+extrema = signal.find_peaks(magDerivative, prominence=(5*(10**-9))) #height=6*(10**-9)
 prominences = signal.peak_prominences(magDerivative, extrema[0])
+print("not adjusted")
 print("total peaks: " + str(len(extrema[0])))
 print("indices:     " + str(extrema[0]))
 print("magDeriv:    " + str(magDerivative[extrema[0]]))
 print("y positions: " + str(ySlice[extrema[0]]))
+print("prominences: " + str(prominences))
+
+## subtract the initial condition
+zeroFile = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0000"
+zeroOut = hdf5_parser.setup(zeroFile)
+
+magXarrayAdj = out['magXarray'] - zeroOut['magXarray']
+magSliceAdj = np.array( magXarrayAdj[TFselect] )
+magDerivativeAdj = np.diff(magSlice, axis=0)
+magDerivativeAdj = np.insert(magDerivativeAdj, 0, 0) #to match shape
+#%%
+extremaAdj = signal.find_peaks(magDerivativeAdj, prominence=(5*(10**-9)), width=20) #height=6*(10**-9)
+prominencesAdj = signal.peak_prominences(magDerivativeAdj, extrema[0])
+print("adjusted")
+print("total peaks: " + str(len(extremaAdj[0])))
+print("indices:     " + str(extremaAdj[0]))
+print("magDeriv:    " + str(magDerivativeAdj[extremaAdj[0]]))
+print("y positions: " + str(ySlice[extremaAdj[0]]))
+print("prominences: " + str(prominencesAdj))
+
+zerosTF = np.logical_and(magSliceAdj<10**-10, -10**-10<magSliceAdj)
+magXarrayZeros = magSliceAdj[zerosTF]
+ySliceZeros = ySlice[zerosTF]
+print(ySliceZeros)
+print(magXarrayZeros.shape)
+
+fig, axs = plt.subplots(4)
+
+axs[0].plot(ySlice, magSlice)
+axs[0].plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
+for y in ySliceZeros:
+    axs[0].plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
+    axs[0].plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #prominence lines
+axs[1].plot(ySlice, magDerivative)
+for y in ySlice[extrema[0]]:
+    axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #lines [x1, x2] [y1, y2]
+    axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #prominence lines
+    
+axs[2].plot(ySlice, magSliceAdj)
+axs[2].plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
+for y in ySliceZeros:
+    axs[2].plot([y, y], [np.min(magSliceAdj), np.max(magSliceAdj)], lw=1) #lines [x1, x2] [y1, y2]
+    axs[2].plot([y, y], [np.min(magSliceAdj), np.max(magSliceAdj)], lw=1) #prominence lines
+axs[3].plot(ySlice, magDerivativeAdj)
+for y in ySlice[extremaAdj[0]]:
+    axs[3].plot([y, y], [0, np.max(magDerivativeAdj)], lw=1) #lines [x1, x2] [y1, y2]
+    axs[3].plot([y, y], [0, np.max(magDerivativeAdj)], lw=1) #prominence lines
+    
+fig.savefig(pwd + "/bubble_velocity/AdjustedB_t" + str(t))
 
 #%%
 fig, axs = plt.subplots(2)
-fig.subtitle('MagX, MagX Derivative, x='+str(x))
+fig.suptitle('MagX, MagX Derivative, x='+str(x))
 axs[0].plot(ySlice, magSlice)
 axs[0].plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
 axs[1].plot(ySlice, magDerivative)
@@ -292,23 +352,25 @@ slc.set_zlim('temp', 1e2, 1e6)
 for y in ySlice[extrema[0]]:
     slc.annotate_line((x, bounds['ymin'], 0), (x, bounds['ymax'], 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
     slc.annotate_line((bounds['xmin'], y, 0), (bounds['xmax'], y, 0), coord_system="data",  plot_args={"color": "red",  "linewidth": 1})
+slc.save(pwd + "/bubble_velocity/col12_t80")
+slc.display()
 #%%
 ### Iterate peak detection through time
 total_peaks = []
 Ypos = []
 prominences = []
-
+zeroFile = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0000"
+zeroOut = hdf5_parser.setup(zeroFile)
 x = closestNum(out['posXarray'], 2.32019*pow(10, 22))
 for t in range(65, 85):
-    # filename = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
-    filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_00"+str(t)
-    out = setup(filename)
+    filename = filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t)
+    out = hdf5_parser.setup(filename)
     
     #set up fields
     TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>-1.0*(10**22)))
-    tempSlice = out['tempArray'][TFselect]
+    magX = out['magXarray'] - zeroOut['magXarray']
     ySlice = out['posYarray'][TFselect]
-    magSlice = out['magXarray'][TFselect]
+    magSlice = magX[TFselect]
     magSlice = np.array(magSlice)
     magDerivative = np.diff(magSlice, axis=0)
     magDerivative = np.insert(magDerivative, 0, 0) #to match shape
@@ -321,21 +383,23 @@ for t in range(65, 85):
     fig, axs = plt.subplots(2)
     fig.suptitle('MagX, MagX Derivative, t='+ str(t) +', x='+str(x))
     axs[0].plot(ySlice, magSlice)
+    axs[0].plot([np.max(ySlice), np.min(ySlice)], [0, 0], lw=1) #0 line
     axs[1].plot(ySlice, magDerivative)
-    for y in ySlice[extrema[0]]:
+    for y in ySlice[extrema[0]]:    
         axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #lines [x1, x2] [y1, y2]
         axs[1].plot([y, y], [0, np.max(magDerivative)], lw=1) #prominence lines
-    fig.savefig("/Users/bwong/URS_FLASH_DataParker/bubble_velocity/col12_t" + str(t))
+    fig.savefig(pwd + "/bubble_velocity/col12_t" + str(t))
+    plt.close()
 
 #%%
 ### save important data as .csv
-with open('/Users/bwong/URS_FLASH_DataParker/bubble_velocity/col12.csv', 'w', newline='') as csvfile:
+with open(pwd + '/bubble_velocity/col12.csv', 'w', newline='') as csvfile:
     fieldnames = ['t', '#peaks', 'Ypos', 'prominences']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
     for i in range(0, len(total_peaks)):
-        writer.writerow({'t': t+65, 
+        writer.writerow({'t': i+65, 
                          '#peaks': total_peaks[i],
                          'Ypos': Ypos[i], 
                          'prominences': prominences[i]})
@@ -356,6 +420,7 @@ def curl(x, y):
     result = ydx - xdy
     return result
 
+# plt.close()
 plt.clf
 curl = np.asarray(curl(magXarray, magYarray))
 
