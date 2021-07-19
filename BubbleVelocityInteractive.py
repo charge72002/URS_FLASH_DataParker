@@ -128,6 +128,7 @@ for t in range(1, 10):
     slc.annotate_marker((x, (-2-0.5*t)*(10**21), 0), coord_system="data", plot_args={"color": "red"})
     slc.annotate_text((textx, (-2-0.5*t)*(10**21), 0), str(x), coord_system="data", text_args={"color": "red"})
     x = x + dx
+slc.save(pwd + "/bubble_velocity/line_annotations")
 slc.display()
 
 #%%
