@@ -2,13 +2,6 @@
 """
 Created on Mon Jul 19 16:56:53 2021
 
-@author: wongb
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 18 19:21:31 2021
-
 @author: Sherry Wong
 """
 #%%
