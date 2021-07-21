@@ -7,11 +7,13 @@ Created on Sun Jul 18 10:53:46 2021
 import numpy as np
 import math
 
+# returns gravitational acceleraton in cm/s^2
 def calcGravity(y):
     C = (-2 * math.pi) * (6.6743 * 10**-8) * (9.84 * 10**-3)
     H = 7.715 * 10**20
     return C * math.tanh(y/H)
 
+# returns estimated ballistic velocity in cm/s
 def calcVelocity(y):
     g = calcGravity(y)
     v = math.sqrt( abs(2*y*g) )
