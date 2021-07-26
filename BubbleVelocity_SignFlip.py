@@ -51,6 +51,10 @@ ymax=float(max(ad['y']).value)
 ymin=float(min(ad['y']).value)
 ylim = -1.79040182984184e21
 
+bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']>-ylim), (out['posYarray']<ymax))
+ySlice = out['posYarray'][TFselect]
+
 #%%
 TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>-1.0*(10**22)))
 ySlice = out['posYarray'][TFselect]
@@ -96,9 +100,10 @@ for t in range(65, 85):
     
     magSlice = out['magXarray'][TFselect]
     zeroIndex = est.findSignFlips(magSlice)
+    # https://numpy.org/doc/stable/reference/generated/numpy.diff.html
     magDerivative = np.diff(magSlice, axis=0)
     magDerivative = np.insert(magDerivative, 0, 0) #to match shape
-    
+        
     zeroIndexTrimmed = []
     for index in zeroIndex:
         if magDerivative[index] > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
@@ -111,6 +116,8 @@ for t in range(65, 85):
     print("derivatives: " + str(magDerivative[zeroIndexTrimmed]))
     untrimmed.append([zeroIndex, magDerivative[zeroIndex]])
     trimmed.append([zeroIndexTrimmed, magDerivative[zeroIndexTrimmed]])
+    
+    ## Make a line plot
     # fig, ax = plt.subplots(2)
     # fig.suptitle('Zero intercepts, t='+ str(t) +', x='+str(x))
     # ax[0].plot(ySlice, magSlice)
@@ -126,6 +133,32 @@ for t in range(65, 85):
     
     # fig.savefig(pwd + "/bubble_velocity/col12_t" + str(t))
     # plt.close()
+    
+    #plot slice in yt
+    ds = yt.load(filename)
+    ad = ds.all_data()
+    dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+    dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+    z=out['tempArray']
+    lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+    slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
+                           center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+    slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=6,plot_args={'linewidth':0.5,'color':'r'}) 
+    slc.annotate_title(str(t) +" "+ 'temp')
+    slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
+    slc.set_zlim('temp', 1e2, 1e6)
+    slc.annotate_title("Temp (\N{DEGREE SIGN}K) + bubble positions, t=" + str(t) + "x=" + str(x))
+
+    #plot bubble position
+    zeroIndexTrimmed = []
+    for index in zeroIndex:
+        if magDerivative[index] > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
+    zeroIndexTrimmed = np.asarray(zeroIndexTrimmed, dtype=int)
+    
+    for y in ySlice[zeroIndexTrimmed]:
+        slc.annotate_line((x, bounds['ymin'], 0), (x, bounds['ymax'], 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
+        slc.annotate_line((bounds['xmin'], y, 0), (bounds['xmax'], y, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
+    slc.save(pwd + "/bubble_velocity/t=" + str(t))
    
 print(trimmed)
 print(str(trimmed))
@@ -212,20 +245,24 @@ fig = slc.plots['temp'].figure
 # slc.display()
 
 #%%
-### iterate
+### iterate yt bubble position on slices
+ds = yt.load(filename)
+ad = ds.all_data()
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
+TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']>-ylim), (out['posYarray']<ymax))
+ySlice = out['posYarray'][TFselect]
 
 z=out['tempArray']
-for t in range(79, 85):
+for t in range(75, 85):
+    filename = filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t)
     #find bubble position
     out = hdf5_parser.setup(filename)
     magSlice = out['magXarray'][TFselect]
     zeroIndex = est.findSignFlips(magSlice)
-    magDerivative = np.diff(magSlice, axis=0)
-    magDerivative = np.insert(magDerivative, 0, 0) #to match shape
+    # magDerivative = np.diff(magSlice, axis=0)
+    # magDerivative = np.insert(magDerivative, 0, 0) #to match shape
     
     #plot in yt
-    filename = filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t)
     ds = yt.load(filename)
     ad = ds.all_data()
     dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
@@ -234,7 +271,7 @@ for t in range(79, 85):
     slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
                            center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
     slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=6,plot_args={'linewidth':0.5,'color':'r'}) 
-    # slc.annotate_title(timeStamp +" "+ field)
+    slc.annotate_title(t +" "+ 'temp')
     slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
     slc.set_zlim('temp', 1e2, 1e6)
     slc.annotate_title("Temp (\N{DEGREE SIGN}K) + bubble positions, t=" + str(t) + "x=" + str(x))
