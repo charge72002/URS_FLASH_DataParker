@@ -85,6 +85,8 @@ print("Plotting done. Time elapsed (sec): " + str(time.time()-startTime))
 startTime = time.time()
 timeStamps = []
 mass = []
+ds = yt.load("D://URS_LargeData/Parker_forSherry/parkerCRs_hdf5_plt_cnt_0700")
+ad = ds.all_data()
 for fileName in os.listdir(directory):
     if(fileName.startswith("parkerCRs")):
         #Start
@@ -118,6 +120,43 @@ plt.ylabel("Total mass (g)")
 fileName = "m2_c1_16x8_64x64"
 plt.savefig(saveDirectory + "/totalMassABC_"+fileName+".png")
 plt.show()
+#%%
+###############################
+#Calculate total mass SELECTION
+###############################
+pwd = "/Users/bwong/URS_FLASH_DataParker"
+import sys
+sys.path.insert(0, pwd)
+# Sherry packages
+import hdf5_parser
+
+startTime = time.time()
+timeStamps = []
+mass = []
+ds = yt.load("D://URS_LargeData/Parker_forSherry/parkerCRs_hdf5_plt_cnt_0700")
+ad = ds.all_data()
+for fileName in os.listdir(directory):
+    if(fileName.startswith("parkerCRs")):
+        #Start
+        print(fileName)
+        timeStamp = fileName[len(fileName)-4: len(fileName)]
+        out = hdf5_parser.setup(fileName, [""])
+        timeStamps.append(int(timeStamp))
+        mass.append(sum(ad[('gas', 'cell_mass')]))
+beepy.beep(4)
+print()
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print("Mass calc done. Time elapsed (sec): " + str(time.time()-startTime))
+
+plt.clf()
+plt.plot(timeStamps, mass)
+
+plt.xlabel("Timestamp")
+plt.ylabel("Total mass (g)")
+fileName = "m2_c1_16x8_64x64"
+plt.savefig(saveDirectory + "/totalMassSelect_m2_c1_16x8_64x64.png")
+plt.show()
+
 
 #%%
 ##########

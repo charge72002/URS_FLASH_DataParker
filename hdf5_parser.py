@@ -66,7 +66,8 @@ def setup(fileName):
             "magYarray" : fieldParse(file, 'magy')}
     #END OF METHOD
     
-# for a custom seleciton of fields
+# for a custom selection of fields
+# comes with XY coordinates
 def customSetup(fileName, fieldList):
     file = h5py.File(fileName, 'r')
 
