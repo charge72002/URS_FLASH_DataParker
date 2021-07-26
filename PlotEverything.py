@@ -19,12 +19,14 @@ import beepy #sound for when the code is done running
 import numpy as np
 from yt.units import kpc
 
-directory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/"
+# directory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/"
+directory = "D://URS_LargeData/Parker_forSherry/"
+os.path.exists(directory)
 # directory = "/Users/wongb/Documents/URS Data/diffusion_3e28/diffusion_3e28/"
 # directory = "/Users/wongb/Documents/URS Data/m1.5_c1_16x16_128x128_Rodrigues_Streaming/More Plot Files/"
 saveDirectory = "D:/URS_LargeData/SherryPlots"
 path.exists(saveDirectory)
-startTime = time.time()
+
 
 #%%
 # # how to get a fixed colorbar???
@@ -33,7 +35,11 @@ startTime = time.time()
 # field = ('gas', 'hrat')
 # field = 'density'
 field = 'temp'
-
+startTime = time.time()
+#https://stackabuse.com/creating-and-deleting-directories-with-python/
+if (not path.exists(saveDirectory + "/" + field)):
+    os.mkdir(saveDirectory + "/" + field)
+    
 for fileName in os.listdir(directory):
     if(fileName.startswith("parkerCRs")):
         #Start
@@ -46,16 +52,26 @@ for fileName in os.listdir(directory):
         # slc.annotate_velocity(factor=16)
         slc.annotate_title(timeStamp +" "+ field)
         plot = slc.plots[field]
-        # slc.set_zlim('density', 1e-33, 1e-24)
+        
         slc.set_zlim('temp', 1e2, 1e6)
-        # slc.set_zlim(('gas', 'hrat'), 0.1e-27, 1e-28)
-        # slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=3,plot_args={'linewidth':0.5,'color':'r'}) 
-
         #Finish
-        #https://stackabuse.com/creating-and-deleting-directories-with-python/
-        if (not path.exists(saveDirectory + "/" + field)):
-            os.mkdir(saveDirectory + "/" + field)
+        slc.annotate_title(timeStamp +" "+ field)
         slc.save(saveDirectory + "/" + field + "/" + timeStamp)
+
+        #plot extra per loop        
+        # slc.set_zlim(('gas', 'hrat'), 0.1e-27, 1e-28)
+        slc = yt.SlicePlot(ds, 'z', 'density')
+        slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=5,plot_args={'linewidth':0.5,'color':'r'}) 
+        slc.set_zlim('density', 1e-33, 1e-24)
+        slc.annotate_title(timeStamp +" density")
+        slc.save(saveDirectory + "/density/" + timeStamp)
+        
+        #plot extra per loop        
+        slc = yt.SlicePlot(ds, 'z', 'cray')
+        slc.set_zlim('cray', 1e10, 1e13)
+        slc.annotate_title(timeStamp +" cray")
+        slc.save(saveDirectory + "/cray/" + timeStamp)
+        
 beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -113,7 +129,7 @@ images = []
 for fileName in os.listdir(saveDirectory + '/' + field): #set in initial parameters
     images.append(saveDirectory + '/' + field + '/' + fileName)
 print(images)
-clip = ImageSequenceClip(images, fps=5)
+clip = ImageSequenceClip(images, fps=15)
 clip.write_gif(saveDirectory + '/' + field + '.gif') #saves in outside folder
 clip.close()
 #DANGER!!! The line below removes the directory.
