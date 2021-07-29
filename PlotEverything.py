@@ -124,7 +124,8 @@ plt.show()
 ###############################
 #Calculate total mass SELECTION
 ###############################
-pwd = "/Users/bwong/URS_FLASH_DataParker"
+# pwd = "/Users/bwong/URS_FLASH_DataParker"
+pwd = "/Users/wongb/Documents/Python_Scripts"
 import sys
 sys.path.insert(0, pwd)
 # Sherry packages
@@ -135,6 +136,13 @@ timeStamps = []
 mass = []
 ds = yt.load("D://URS_LargeData/Parker_forSherry/parkerCRs_hdf5_plt_cnt_0700")
 ad = ds.all_data()
+ymax = max(ad['y'])
+ymin = min(ad['y'])
+dsSelect = ad.include_inside('y', ymin, ymax)
+# dsSelect = ad.cut_region(["ad['y'] > ymin", "ad['y'] > ymax"])
+dsSelect = dsSelect.save_as_dataset(fields=[('gas', 'cell_mass')])
+
+
 for fileName in os.listdir(directory):
     if(fileName.startswith("parkerCRs")):
         #Start
