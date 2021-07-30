@@ -20,7 +20,8 @@ import numpy as np
 from yt.units import kpc
 
 # directory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/"
-directory = "D://URS_LargeData/Parker_forSherry/"
+# directory = "D://URS_LargeData/Parker_forSherry/"
+directory = "D://URS_LargeData/m2_c1_16x8_64x64_cfl06_tx10/"
 os.path.exists(directory)
 # directory = "/Users/wongb/Documents/URS Data/diffusion_3e28/diffusion_3e28/"
 # directory = "/Users/wongb/Documents/URS Data/m1.5_c1_16x16_128x128_Rodrigues_Streaming/More Plot Files/"
@@ -29,7 +30,10 @@ path.exists(saveDirectory)
 
 
 #%%
-# # how to get a fixed colorbar???
+##################################
+#Really plot everything. Full box.
+##################################
+# how to get a fixed colorbar???
 #slice plotting
 # field = "(hrat)"
 # field = ('gas', 'hrat')
