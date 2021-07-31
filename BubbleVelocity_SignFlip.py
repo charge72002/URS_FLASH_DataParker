@@ -135,30 +135,30 @@ for t in range(65, 85):
     # plt.close()
     
     #plot slice in yt
-    ds = yt.load(filename)
-    ad = ds.all_data()
-    dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
-    dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
-    z=out['tempArray']
-    lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
-    slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
-                           center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
-    slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=6,plot_args={'linewidth':0.5,'color':'r'}) 
-    slc.annotate_title(str(t) +" "+ 'temp')
-    slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
-    slc.set_zlim('temp', 1e2, 1e6)
-    slc.annotate_title("Temp (\N{DEGREE SIGN}K) + bubble positions, t=" + str(t) + "x=" + str(x))
+    # ds = yt.load(filename)
+    # ad = ds.all_data()
+    # dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
+    # dsSelect = dsSelect.include_inside('y', bounds['ymin'], bounds['ymax'])
+    # z=out['tempArray']
+    # lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+    # slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
+    #                        center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+    # slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=6,plot_args={'linewidth':0.5,'color':'r'}) 
+    # slc.annotate_title(str(t) +" "+ 'temp')
+    # slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
+    # slc.set_zlim('temp', 1e2, 1e6)
+    # slc.annotate_title("Temp (\N{DEGREE SIGN}K) + bubble positions, t=" + str(t) + "x=" + str(x))
 
-    #plot bubble position
-    zeroIndexTrimmed = []
-    for index in zeroIndex:
-        if magDerivative[index] > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
-    zeroIndexTrimmed = np.asarray(zeroIndexTrimmed, dtype=int)
+    # #plot bubble position
+    # zeroIndexTrimmed = []
+    # for index in zeroIndex:
+    #     if magDerivative[index] > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
+    # zeroIndexTrimmed = np.asarray(zeroIndexTrimmed, dtype=int)
     
-    for y in ySlice[zeroIndexTrimmed]:
-        slc.annotate_line((x, bounds['ymin'], 0), (x, bounds['ymax'], 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
-        slc.annotate_line((bounds['xmin'], y, 0), (bounds['xmax'], y, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
-    slc.save(pwd + "/bubble_velocity/t=" + str(t))
+    # for y in ySlice[zeroIndexTrimmed]:
+    #     slc.annotate_line((x, bounds['ymin'], 0), (x, bounds['ymax'], 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
+    #     slc.annotate_line((bounds['xmin'], y, 0), (bounds['xmax'], y, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
+    # slc.save(pwd + "/bubble_velocity/t=" + str(t))
    
 print(trimmed)
 print(str(trimmed))

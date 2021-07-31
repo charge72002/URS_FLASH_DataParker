@@ -1,5 +1,5 @@
 */
-*.csv
+/old_python_script_versions/*.csv
 *.gif
 .DS_Store
 
