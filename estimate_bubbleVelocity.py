@@ -13,6 +13,7 @@ def calcGravity(y):
     H = 7.715 * 10**20
     return C * math.tanh(y/H)
 
+# TODO: implement additional gravity within 1kpc of galactic disk
 # returns estimated ballistic velocity in cm/s
 def calcVelocity(y):
     g = calcGravity(y)
