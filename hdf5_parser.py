@@ -41,7 +41,7 @@ def bigCoordinateSetup(file):
 # fieldname is some string that has a key in the data set
 def fieldParse(file, fieldname):
     if not fieldname in file.keys():
-        raise Exception("Key \"" + fieldname + "\" not found!")
+        raise Exception("Key \"" + fieldname + "\" not found!" + "\nAcceptable keys:\n" + file.keys())
         
     fieldList = []
     for item in file[fieldname]:

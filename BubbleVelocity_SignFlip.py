@@ -52,10 +52,11 @@ ymin=float(min(ad['y']).value)
 ylim = -1.79040182984184e21
 
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
-TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']>-ylim), (out['posYarray']<ymax))
+TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<-ylim), (out['posYarray']>ymin))
 ySlice = out['posYarray'][TFselect]
 
 #%%
+### bubble finding testing
 TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>-1.0*(10**22)))
 ySlice = out['posYarray'][TFselect]
 magSlice = out['magXarray'][TFselect]
@@ -74,6 +75,7 @@ print("trimmed: " + str(zeroIndexTrimmed))
 print("derivatives: " + str(magDerivative[zeroIndexTrimmed]))
 
 #%%
+### plot promininces?
 fig, ax = plt.subplots(2)
 ax[0].plot(ySlice, magSlice)
 ax[0].plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
@@ -87,14 +89,14 @@ for y in ySlice[zeroIndexTrimmed]:
     ax[1].plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #prominence lines
 
 #%%
-### iterate
+### iterate bubble finding
 untrimmed = []
 trimmed = []
 # trimmedIndices = []
 
 TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>ymin))
 ySlice = out['posYarray'][TFselect]
-for t in range(79, 81):
+for t in range(65, 85):
     filename = filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t)
     out = hdf5_parser.setup(filename)
     
@@ -186,20 +188,16 @@ with open(pwd + '/bubble_velocity/signFlip.csv', 'w', newline='') as csvfile:
         
 #%%
 ### Try a little left or right
-lev = np.logspace(np.log10(out['densityArray'].min()), np.log10(out['densityArray'].max()), num=1000)
-plt.tricontourf(out['posXarray'], out['posYarray'], out['densityArray'], locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
+# lev = np.logspace(np.log10(out['densityArray'].min()), np.log10(out['densityArray'].max()), num=1000)
+# plt.tricontourf(out['posXarray'], out['posYarray'], out['densityArray'], locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 
-# x = est.closestNum(out['posXarray'], 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
-x = est.closestNum(out['posXarray'], -4.211*(10**21) - (5*dx)) #col 2
+x = est.closestNum(out['posXarray'], 2.32838*pow(10, 22) - (5*dx)) #2.320198554 is good for col 12
+# x = est.closestNum(out['posXarray'], -4.211*(10**21) - (5*dx)) #col 2
 plt.clf()
 for t in range(1, 10):
-    TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']>-ylim), (out['posYarray']<ymax))
-    ySlice = out['posYarray'][TFselect]
-    magSlice = out['magXarray'][TFselect]
-    zeroIndex = est.findSignFlips(magSlice)
-    # magDerivative = np.diff(magSlice, axis=0)
-    # magDerivative = np.insert(magDerivative, 0, 0) #to match shape
-    
+    print("("+ str(t) + ", " + str(x) +")")
+    TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>ymax))
+    ySlice = out['posYarray'][TFselect]    
     magSlice = out['magXarray'][TFselect]
     zeroIndex = est.findSignFlips(magSlice)
     magDerivative = np.diff(magSlice, axis=0)
@@ -207,19 +205,26 @@ for t in range(1, 10):
     
     zeroIndexTrimmed = []
     for index in zeroIndex:
-        if magDerivative[index] > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
+        avgSlope = 0.5*(out['magXarray'][index-1]-out['magXarray'][index+1])
+        if avgSlope > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
     zeroIndexTrimmed = np.asarray(zeroIndexTrimmed, dtype=int)
     
-    
-    plt.plot(ySlice, magSlice)
-    plt.plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
+    fig, axs = plt.subplots(2)
+    fig.suptitle('MagX, MagX Derivative, x='+str(x))
+    axs[0].plot(ySlice, magSlice)
+    axs[0].plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
+    axs[1].plot(ySlice, magDerivative)
     for y in ySlice[zeroIndexTrimmed]:
-        plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
-        plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1)
-    plt.savefig(pwd + "/bubble_velocity/Slice" + str(t))
+        axs[0].plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
+        axs[0].plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1)
+        axs[1].plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
+        axs[1].plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1)
+        
+    fig.savefig(pwd + "/bubble_velocity/Slice" + str(t))
     plt.close()
+    
+    #prep for next loop
     x = est.closestNum(out['posXarray'], x + dx)
-    print("("+ str(t) + ", " + str(x) +")")
     
 #%%
 ### YT plot position onto slice
