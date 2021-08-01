@@ -190,7 +190,7 @@ lev = np.logspace(np.log10(out['densityArray'].min()), np.log10(out['densityArra
 plt.tricontourf(out['posXarray'], out['posYarray'], out['densityArray'], locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 
 # x = est.closestNum(out['posXarray'], 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
-x = est.closestNum(out['posXarray'], -4.211*(10**21)) - (5*dx) #col 2
+x = est.closestNum(out['posXarray'], -4.211*(10**21) - (5*dx)) #col 2
 for t in range(1, 10):
     TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']>-ylim), (out['posYarray']<ymax))
     ySlice = out['posYarray'][TFselect]
@@ -204,7 +204,7 @@ for t in range(1, 10):
     magDerivative = np.diff(magSlice, axis=0)
     magDerivative = np.insert(magDerivative, 0, 0)
     
-    plt.plot(ySlice, magSlice)
+    plt.plot(ySlice, magSlice)s
     plt.plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
     for y in ySlice[zeroIndex]:
         plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
@@ -214,7 +214,7 @@ for t in range(1, 10):
     x = x + dx
     print("("+ str(t) + ", " + str(x) +")")
     
-#%%
+plt#%%
 ### YT plot position onto slice
 # select col 12
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
