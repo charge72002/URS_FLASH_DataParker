@@ -94,7 +94,7 @@ trimmed = []
 
 TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>ymin))
 ySlice = out['posYarray'][TFselect]
-for t in range(65, 85):
+for t in range(79, 81):
     filename = filedirectory + "/parkerCRs_hdf5_plt_cnt_00" + str(t)
     out = hdf5_parser.setup(filename)
     
@@ -134,7 +134,7 @@ for t in range(65, 85):
     # fig.savefig(pwd + "/bubble_velocity/col12_t" + str(t))
     # plt.close()
     
-    #plot slice in yt
+    # #plot slice in yt
     # ds = yt.load(filename)
     # ad = ds.all_data()
     # dsSelect = ad.include_inside('x', bounds['xmin'], bounds['xmax'])
@@ -142,7 +142,7 @@ for t in range(65, 85):
     # z=out['tempArray']
     # lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
     # slc = yt.SlicePlot(ds, 'z', 'temp',  data_source=dsSelect,
-    #                        center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
+    #                         center=( np.sum([bounds['xmin'], bounds['xmax']])/2, np.sum([bounds['ymin'], bounds['ymax']])/2, 0))
     # slc.annotate_streamlines('magnetic_field_x','magnetic_field_y',density=6,plot_args={'linewidth':0.5,'color':'r'}) 
     # slc.annotate_title(str(t) +" "+ 'temp')
     # slc.set_width(max([ abs(bounds['xmax']-bounds['xmin']), abs(bounds['ymax']-bounds['ymin']) ]))
@@ -202,8 +202,8 @@ for t in range(1, 10):
     
     magSlice = out['magXarray'][TFselect]
     zeroIndex = est.findSignFlips(magSlice)
-    # magDerivative = np.diff(magSlice, axis=0)
-    # magDerivative = np.insert(magDerivative, 0, 0)
+    magDerivative = np.diff(magSlice, axis=0)
+    magDerivative = np.insert(magDerivative, 0, 0)
     
     zeroIndexTrimmed = []
     for index in zeroIndex:
@@ -241,7 +241,7 @@ slc.set_zlim('temp', 1e2, 1e6)
 for y in ySlice[zeroIndexTrimmed]:
     slc.annotate_line((x, bounds['ymin'], 0), (x, bounds['ymax'], 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
     slc.annotate_line((bounds['xmin'], y, 0), (bounds['xmax'], y, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
-slc.save(pwd + "/bubble_velocity/t=80")
+slc.save(pwd + "/bubble_velocity/xPositions")
 
 fig = slc.plots['temp'].figure
 # figure = fig.figure
