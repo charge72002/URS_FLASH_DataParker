@@ -191,30 +191,37 @@ plt.tricontourf(out['posXarray'], out['posYarray'], out['densityArray'], locator
 
 # x = est.closestNum(out['posXarray'], 2.32838*pow(10, 22)) - (5*dx) #2.320198554 is good for col 12
 x = est.closestNum(out['posXarray'], -4.211*(10**21) - (5*dx)) #col 2
+plt.clf()
 for t in range(1, 10):
     TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']>-ylim), (out['posYarray']<ymax))
     ySlice = out['posYarray'][TFselect]
     magSlice = out['magXarray'][TFselect]
     zeroIndex = est.findSignFlips(magSlice)
-    magDerivative = np.diff(magSlice, axis=0)
-    magDerivative = np.insert(magDerivative, 0, 0) #to match shape
+    # magDerivative = np.diff(magSlice, axis=0)
+    # magDerivative = np.insert(magDerivative, 0, 0) #to match shape
     
     magSlice = out['magXarray'][TFselect]
     zeroIndex = est.findSignFlips(magSlice)
-    magDerivative = np.diff(magSlice, axis=0)
-    magDerivative = np.insert(magDerivative, 0, 0)
+    # magDerivative = np.diff(magSlice, axis=0)
+    # magDerivative = np.insert(magDerivative, 0, 0)
     
-    plt.plot(ySlice, magSlice)s
+    zeroIndexTrimmed = []
+    for index in zeroIndex:
+        if magDerivative[index] > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
+    zeroIndexTrimmed = np.asarray(zeroIndexTrimmed, dtype=int)
+    
+    
+    plt.plot(ySlice, magSlice)
     plt.plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
-    for y in ySlice[zeroIndex]:
+    for y in ySlice[zeroIndexTrimmed]:
         plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
         plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1)
     plt.savefig(pwd + "/bubble_velocity/Slice" + str(t))
     plt.close()
-    x = x + dx
+    x = est.closestNum(out['posXarray'], x + dx)
     print("("+ str(t) + ", " + str(x) +")")
     
-plt#%%
+#%%
 ### YT plot position onto slice
 # select col 12
 bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
