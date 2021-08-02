@@ -201,15 +201,25 @@ print(str(trimmed))
 
 #%%
 ### estimate velocities
+import estimate_bubbleVelocity as est
 estVelocities = []
 for i in range(0, len(trimmed)):
     currentTimeStep = []
-    for ypos in ySlice[trimmed[i][0]]:
-        currentTimeStep.append( est.calcVelocity(ypos) )
+    ypos = ySlice[trimmed[i][0]]
+    for j in range(0, len(ypos)):
+        y = ypos[j]
+        if(abs(y)>3E21): #outside 1kpc of disk
+            currentTimeStep.append( est.calcVelocity(y) )
+        else: #within 1kpc of disk
+            #check if data available for previous timestep
+            print("Inside the disk")
+            if(i==0): raise Exception("No data for previous v0 and y0!")
+            if(j==0): raise Exception("No data for previous y0!")
+            currentTimeStep.append( est.calcVelocity(y), y0=ypos[j-1], v0=estVelocities[i-1][1] )
     estVelocities.append(currentTimeStep)
 #%%
 ### save important data as .csv
-with open(pwd + '/bubble_velocity/signFlip.csv', 'w', newline='') as csvfile:
+with open(pwd + '/bubble_velocity/signFlip2.csv', 'w', newline='') as csvfile:
     fieldnames = ['t', 'Ypos', 'magslope', 'expected Yvel']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()

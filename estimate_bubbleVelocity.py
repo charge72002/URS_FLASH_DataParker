@@ -7,19 +7,33 @@ Created on Sun Jul 18 10:53:46 2021
 import numpy as np
 import math
 
+#CONSTANTS
+#C= -2pi * newton's constant G * surface density \Sigma
+C = (-2 * math.pi) * (6.6743 * 10**-8) * (9.84 * 10**-3)
+H = 7.715 * 10**20
+
 # returns gravitational acceleraton in cm/s^2
 def calcGravity(y):
-    C = (-2 * math.pi) * (6.6743 * 10**-8) * (9.84 * 10**-3)
-    H = 7.715 * 10**20
     return C * math.tanh(y/H)
 
-# TODO: implement additional gravity within 1kpc of galactic disk
+# TODO: implement additional gravity within 1kpc (3E21cm) of galactic disk
 # returns estimated ballistic velocity in cm/s
-def calcVelocity(y):
-    g = calcGravity(y)
-    v = math.sqrt( abs(2*y*g) )
-    if(g<0): v*=-1;
-    return v
+def calcVelocity(y, y0=0, v0=0):
+    #gravity becomes constant after 4 scale heights
+    if(abs(y)<(4*H)): #y<1~kpc for Solar Neighborhood Parameters
+        print("Inside the disk 2")
+        b = C*H*math.log(math.cosh(y0/H))
+        c = C*H*math.log(math.cosh(y/H))
+        X = v0**2 - b + c
+        # print(X)
+        #resolve sign issue
+        if(X>0): return math.sqrt(X)
+        else: return -(math.sqrt(-X))
+    else:
+        g = calcGravity(y)
+        v = math.sqrt( abs(2*y*g) )
+        if(g<0): v*=-1;
+        return v
 
 # useful misc methods from BubbleVelocityInteractive.py
 def removeDuplicates(arrayIN):
