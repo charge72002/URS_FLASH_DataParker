@@ -25,6 +25,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import beepy #sound for when the code is done running
 import numpy as np
+import math
 
 import sys
 sys.path.insert(0, pwd)
@@ -42,13 +43,37 @@ saveDirectory = "D:/URS_LargeData/SherryPlots"
 path.exists(saveDirectory)
 
 #%%
+ds = yt.load("D://URS_LargeData/Parker_forSherry/parkerCRs_hdf5_plt_cnt_0700")
+ad = ds.all_data()
+
+#%%
+# print(ds.field_list)
+# print(ds.derived_field_list)
+
+print(ad[('gas', 'kinetic_energy')][0])
+m = ad[('gas', 'cell_mass')][0]
+v = ad[('gas', 'velocity_magnitude')][0]
+print(0.5 * m * (v**2))
+
+print("\nTOTAL energies:")
+print(sum(ad[('gas', 'kinetic_energy')]))
+# m = sum(ad[('gas', 'cell_mass')]) #in g
+# v = sum(ad[('gas', 'velocity_magnitude')]) #in cm/s
+# print(0.5 * m * (v**2))
+m = ad[('gas', 'cell_mass')] #in g
+v = ad[('gas', 'velocity_magnitude')] #in cm/s
+print(sum(0.5 * m * (v**2)))
+#%%
 
 #####################
-#Calculate total mass
+#Quantity f over time
 #####################
+#this takes ~12 mins to run
+field = ('gas', 'kinetic_energy')
+unit = str(ad[field]).split("] ")[1]
 startTime = time.time()
 timeStamps = []
-mass = []
+f = []
 ds = yt.load("D://URS_LargeData/Parker_forSherry/parkerCRs_hdf5_plt_cnt_0700")
 ad = ds.all_data()
 for fileName in os.listdir(directory):
@@ -59,7 +84,7 @@ for fileName in os.listdir(directory):
         ds = yt.load(directory+fileName)
         ad = ds.all_data()
         timeStamps.append(int(timeStamp))
-        mass.append(sum(ad[('gas', 'cell_mass')]))
+        f.append(sum(ad[field]))
 beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -70,20 +95,60 @@ plt.clf()
 # bottomTick = round( np.amin(mass) )
 # log = np.logspace(bottomTick, upperTick, 8)
 # plt.plot(timeStamps, np.log10(mass))
-plt.plot(timeStamps, mass)
+plt.plot(timeStamps, f)
 # plt.semilogy(timeStamps, mass)
 # plt.set_yscale('log', base=10)
 
-
+plt.title("('gas', 'kinetic_energy')")
 plt.xlabel("Timestamp")
-plt.ylabel("Total mass (g)")
+# plt.ylabel("Total mass (g)")
+plt.ylabel("Kinetic Energy (dynes/cm^2)")
 # plt.ticklabel_format(axis="y", style="sci", scilimits=(38, 42), useMathText=True)
 # plt.ticklabel_format(axis="x", style="plain")
 # plt.yticks()
 # fileName = "dm1.5_c1_16x16_128x128_Rodrigues_Streaming"
 fileName = "m2_c1_16x8_64x64"
-plt.savefig(saveDirectory + "/totalMassABC_"+fileName+".png")
+plt.savefig(pwd + "/Conservation/KE_"+fileName+".png")
 plt.show()
+
+#%%
+## get everything. sum all energy-related terms over time, so you can manipulate them later
+
+fields = [('gas', 'kinetic_energy'), ('gas', 'magnetic_energy')]
+unit = str(ad[field]).split("] ")[1]
+startTime = time.time()
+timeStamps = []
+f = np.array(len(fields))
+ds = yt.load("D://URS_LargeData/Parker_forSherry/parkerCRs_hdf5_plt_cnt_0700")
+ad = ds.all_data()
+for fileName in os.listdir(directory):
+    if(fileName.startswith("parkerCRs")):
+        #Start
+        print(fileName)
+        timeStamp = fileName[len(fileName)-4: len(fileName)]
+        ds = yt.load(directory+fileName)
+        ad = ds.all_data()
+        timeStamps.append(int(timeStamp))
+        for i in range(0, len(fields)-1):
+            f[i].append(sum(ad[fields[i]]))
+beepy.beep(4)
+print()
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print("Mass calc done. Time elapsed (sec): " + str(time.time()-startTime))
+
+#%%
+### save important data as .csv
+with open(pwd + '/Conservation/Energies.csv', 'w', newline='') as csvfile:
+    fieldnames = ['t', 'kinetic_energy', 'Ypos', 'prominences']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+
+    for i in range(0, len(total_peaks)):
+        writer.writerow({'t': i+65, 
+                         '#peaks': total_peaks[i],
+                         'Ypos': Ypos[i], 
+                         'prominences': prominences[i]})
+
 #%%
 ###############################
 #Calculate total mass SELECTION
