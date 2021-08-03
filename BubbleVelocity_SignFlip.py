@@ -153,7 +153,7 @@ for t in range(65, 85):
     untrimmed.append([zeroIndex, magDerivative[zeroIndex]])
     trimmed.append([zeroIndexTrimmed, magDerivative[zeroIndexTrimmed]])
     
-    ## Make a line plot
+    # # Make a line plot
     # fig, ax = plt.subplots(2)
     # fig.suptitle('Zero intercepts, t='+ str(t) +', x='+str(x))
     # ax[0].plot(ySlice, magSlice)
@@ -423,7 +423,35 @@ slc.save(pwd + "/bubble_velocity_2D/line_annotations")
 slc.display()
 
 #%%
+#rebuild the lineplot code
+out = hdf5_parser.setup(filename)
+x = est.closestNum(out['posXarray'], 2.32838*pow(10, 22) - (5*dx)) #2.320198554 is good for col 12
+plt.clf()
 
+# TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim))
+# ySlice = out['posYarray'][TFselect]    
+TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>ymin))
+ySlice = out['posYarray'][TFselect] #this is in order
+magSlice = out['magXarray'][TFselect]
+# zeroIndex = est.findSignFlips(magSlice)
+# magDerivative = np.diff(magSlice, axis=0)
+# magDerivative = np.insert(magDerivative, 0, 0)
+
+# zeroIndexTrimmed = []
+# for index in zeroIndex:
+#     avgSlope = 0.5*(out['magXarray'][index-1]-out['magXarray'][index+1])
+#     if avgSlope > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
+# zeroIndexTrimmed = np.asarray(zeroIndexTrimmed, dtype=int)
+
+ySlice.sort()
+plt.plot(ySlice, magSlice)
+plt.plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
+# plt.plot([max(ySlice), min(ySlice)], [0, 0], lw=1) #zero line
+# for y in ySlice[zeroIndexTrimmed]:
+#     plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
+#     plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1)
+# plt.show()    
+plt.savefig(pwd + "/bubble_velocity/SliceA")
 #%%
 ### Try a detection little left or right
 # lev = np.logspace(np.log10(out['densityArray'].min()), np.log10(out['densityArray'].max()), num=1000)
