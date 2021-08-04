@@ -22,15 +22,16 @@ def calcVelocity(y, y0=0, v0=0):
     #gravity becomes constant after 4 scale heights
     if(abs(y)<(4*H)): #y<1~kpc for Solar Neighborhood Parameters
         print("Inside the disk 2")
-        b = C*H*math.log(math.cosh(y0/H))
-        c = C*H*math.log(math.cosh(y/H))
+        b = 2*C*H*math.log(math.cosh(y0/H))
+        c = 2*C*H*math.log(math.cosh(y/H))
         X = v0**2 - b + c
         # print(X)
         #resolve sign issue
         if(X>0): return math.sqrt(X)
         else: return -(math.sqrt(-X))
     else:
-        g = calcGravity(y)
+        # g = calcGravity(y) 
+        g = C #Constant gravity; tanh(y/H)~1
         v = math.sqrt( abs(2*y*g) )
         if(g<0): v*=-1;
         return v

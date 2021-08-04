@@ -433,25 +433,10 @@ plt.clf()
 TFselect = np.logical_and((out['posXarray'] == x), (out['posYarray']<ylim), (out['posYarray']>ymin))
 ySlice = out['posYarray'][TFselect] #this is in order
 magSlice = out['magXarray'][TFselect]
-# zeroIndex = est.findSignFlips(magSlice)
-# magDerivative = np.diff(magSlice, axis=0)
-# magDerivative = np.insert(magDerivative, 0, 0)
-
-# zeroIndexTrimmed = []
-# for index in zeroIndex:
-#     avgSlope = 0.5*(out['magXarray'][index-1]-out['magXarray'][index+1])
-#     if avgSlope > 5*(10**-11): zeroIndexTrimmed = np.append(zeroIndexTrimmed, index)
-# zeroIndexTrimmed = np.asarray(zeroIndexTrimmed, dtype=int)
-
 ySlice.sort()
 plt.plot(ySlice, magSlice)
-plt.plot([max(ySlice), min(ySlice)], [0, 0], lw=1)
-# plt.plot([max(ySlice), min(ySlice)], [0, 0], lw=1) #zero line
-# for y in ySlice[zeroIndexTrimmed]:
-#     plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1) #lines [x1, x2] [y1, y2]
-#     plt.plot([y, y], [np.min(magSlice), np.max(magSlice)], lw=1)
-# plt.show()    
 plt.savefig(pwd + "/bubble_velocity/SliceA")
+
 #%%
 ### Try a detection little left or right
 # lev = np.logspace(np.log10(out['densityArray'].min()), np.log10(out['densityArray'].max()), num=1000)
