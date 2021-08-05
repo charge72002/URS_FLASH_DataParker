@@ -67,7 +67,7 @@ def closestNum(arrayIN, targetNum):
 def findSignFlips(arrayIN):
     result = []
     prevNum = arrayIN[0]
-    for index in range(0, len(arrayIN)-1):
+    for index in range(0, len(arrayIN)):
        if prevNum < 0 and arrayIN[index] > 0: result.append(index-1)
        elif prevNum > 0 and arrayIN[index] < 0: result.append(index-1)
        prevNum = arrayIN[index]

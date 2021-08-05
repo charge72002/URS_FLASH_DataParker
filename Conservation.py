@@ -64,6 +64,9 @@ print(sum(ad[('gas', 'kinetic_energy')]))
 m = ad[('gas', 'cell_mass')] #in g
 v = ad[('gas', 'velocity_magnitude')] #in cm/s
 print(sum(0.5 * m * (v**2)))
+
+print('\n')
+print("Units: " + str(ds.mass_unit) + ", " + str(ds.length_unit) + ", " + str(ds.temperature_unit))
 #%%
 
 #####################
@@ -116,10 +119,11 @@ plt.show()
 ## get everything. sum all energy-related terms over time, so you can manipulate them later
 
 fields = [('gas', 'kinetic_energy'), ('gas', 'magnetic_energy')]
-unit = str(ad[field]).split("] ")[1]
+# unit = str(ad[fields]).split("] ")[1]
 startTime = time.time()
 timeStamps = []
-f = np.array(len(fields))
+f = []
+for field in fields: f.append([])
 classic = []
 ds = yt.load("D://URS_LargeData/Parker_forSherry/parkerCRs_hdf5_plt_cnt_0700")
 ad = ds.all_data()
@@ -128,15 +132,15 @@ for fileName in os.listdir(filedirectory):
         #Start
         print(fileName)
         timeStamp = fileName[len(fileName)-4: len(fileName)]
-        ds = yt.load(filedirectory+fileName)
+        ds = yt.load(filedirectory+ '/' +fileName)
         ad = ds.all_data()
         timeStamps.append(int(timeStamp))
-        for i in range(0, len(fields)-1):
+        for i in range(0, len(fields)):
             f[i].append(sum(ad[fields[i]]))
         #calculate classical energy
         m = ad[('gas', 'cell_mass')] #in g
         v = ad[('gas', 'velocity_magnitude')] #in cm/s
-        print(sum(0.5 * m * (v**2)))
+        classic.append(sum(0.5 * m * (v**2)))
 beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -149,11 +153,36 @@ with open(pwd + '/Conservation/Energies.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
-    for i in range(0, len(f)):
-        writer.writerow({'t': i+65, 
-                         'kinetic_energy': f[i],
+    for i in range(0, len(f[0])):
+        writer.writerow({'t': i, 
+                         'kinetic_energy': f[0][i],
                          'classical_energy': classic[i], 
-                         'magnetic_energy': f[i]})
+                         'magnetic_energy': f[1][i]})
+
+#%%
+### READ csv
+f = {}
+with open(pwd + '/Conservation/Energies.csv', 'r', newline='') as csvfile:
+    r = csv.DictReader(csvfile)
+    linenum=0
+    for row in r:
+        for label in row: 
+            if(linenum==0): 
+                #init dict
+                f[label] = []
+            else:
+                f[label].append(row[label])
+        linenum+=1
+    print(str(linenum) + " lines read.")
+    print(f.keys())
+    
+#%%
+### plot
+plt.clf()
+plt.plot(f['t'], f['kinetic_energy'], label = 'kinetic_energy', linestyle = '--', lw=3)
+plt.plot(f['t'], f['classical_energy'], label = 'classical_energy', linestyle = ':', lw=3)
+plt.plot(f['t'], f['magnetic_energy'], label = 'magnetic_energy')
+plt.legend()
 
 #%%
 ###############################
