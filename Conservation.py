@@ -59,12 +59,13 @@ class energies:
         pressure = ad[('gas', 'pressure')]
         #CR energy density in erg/g
         cray = ad['flash', 'cray'] * (erg/g)
-        
-        volume = ad[('gas', 'cell_volume')]
-        mass = ad[('gas', 'cell_mass')]
         #gravitational potential in erg/g
         #use numpy instead of math package on array
         phi = C*H*np.log(np.cosh(ad['y']/H)) * erg/g
+        
+        volume = ad[('gas', 'cell_volume')]
+        mass = ad[('gas', 'cell_mass')]
+        
         
         #turn everything into ergs
         self.KE = KE * volume
@@ -111,7 +112,13 @@ ad = ds.all_data()
 ### test energies class
 eng = energies(ds)
 totals = eng.totals()
-for field in totals.keys(): print(str(field) + ": " + str(totals[field]))
+# for field in totals.keys(): print(str(field) + ": " + str(totals[field]))
+for field in totals.keys(): 
+    print(str(field) + ": ")
+    print("Total:\t" + str(totals[field]))
+    if not(field == 'total'): 
+        print("Max: \t" + str(np.max(vars(eng)[field])))
+        print("Min: \t" + str(np.min(vars(eng)[field])))
 
 #%%
 # print(ds.field_list)
