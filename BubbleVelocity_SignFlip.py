@@ -15,7 +15,6 @@ filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/par
 filedirectory = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files"
 pwd = "/Users/bwong/URS_FLASH_DataParker"
 #%%
-# import h5py
 import numpy as np
 # import scipy
 from scipy import signal
@@ -73,6 +72,7 @@ def closestNum(arrayIN, targetNum, removeDuplicates=True):
     # print("FINAL: " + str(index) + ', ' + str(smallArray[index]))
     # return result
     #END OF METHOD
+    
 #%%
 out = hdf5_parser.setup(filename)
 
