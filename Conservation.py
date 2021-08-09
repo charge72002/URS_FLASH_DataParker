@@ -44,7 +44,8 @@ class energies:
     H = 7.715 * 10**20
     
     ad, KE, PE_grav, PE_mag, PE_cr, PE_thermo = None, None, None, None, None, None
-    """class constructor using yt dataset ds"""
+    """class constructor using yt dataset ds
+    ~3-5 seconds to run per file"""
     def __init__(self, ds, gamma_cr = 4/3, gamma_gas = 5/3, C = C, H=H):
         startTime = time.time()
         # C = self.C
@@ -80,7 +81,6 @@ class energies:
         
     """Returns a dictionary with field totals, including the total energy combined"""
     def totals(self):
-        startTime = time.time()
         totals = {'total':0,
                   'KE': sum(self.KE), 
                   'PE_grav': sum(self.PE_grav), 
@@ -91,8 +91,6 @@ class energies:
             # print(field)
             totals['total'] += totals[field]
             # if not(field=='total'): totals['total'] += totals[field]
-        print(totals.keys())
-        print("energies.totals() done. Time elapsed (sec): " + str(time.time()-startTime))
         return totals
 
 # # directory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/"
@@ -111,16 +109,125 @@ ad = ds.all_data()
 #%%
 ### test energies class
 eng = energies(ds)
+startTime = time.time()
 totals = eng.totals()
+print("energies.totals() done. Time elapsed (sec): " + str(time.time()-startTime))
 # for field in totals.keys(): print(str(field) + ": " + str(totals[field]))
+# print info on all fields
+print("\n" + str(totals.keys()))
 for field in totals.keys(): 
     print(str(field) + ": ")
     print("Total:\t" + str(totals[field]))
     if not(field == 'total'): 
+        #vars() prints all variables in an object
         print("Max: \t" + str(np.max(vars(eng)[field])))
         print("Min: \t" + str(np.min(vars(eng)[field])))
 
+
 #%%
+### iterate total energies over time
+
+startTime = time.time()
+timeStamps = [] #list of time stamps
+energylist = [] #list of energies objects
+#dict of arrays of total energy over time
+energytotals = {'total':[],
+                'KE': [], 
+                'PE_grav': [], 
+                'PE_mag': [], 
+                'PE_cr': [], 
+                'PE_thermo': []}
+
+#53 minute runtime. pain.
+for fileName in os.listdir(filedirectory):
+    if(fileName.startswith("parkerCRs")):
+        #Start
+        print(fileName)
+        timeStamp = fileName[len(fileName)-4: len(fileName)]
+        timeStamps.append(int(timeStamp))
+        ds = yt.load(filedirectory+ '/' +fileName)
+        
+        #that's a LOT of data (112 timesteps * 5 fields) please don't fry my computer
+        #each file usually has 136 [derived] fields?
+        #means ~43MB of data ok that's fine
+        # energylist.append(energies(ds))
+        
+        temptotal = energies(ds).totals()
+        for field in temptotal:
+            energytotals[field].append(temptotal[field])
+beepy.beep(4)
+print()
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print("Energy conservation done. Time elapsed (sec): " + str(time.time()-startTime))
+
+#%%
+### save important data as .csv
+with open(pwd + '/Conservation/EnergiesTotal.csv', 'w', newline='') as csvfile:
+    fieldnames = ['t', "KE", "PE_grav", "PE_mag", "PE_cr", "PE_thermo", "total"]
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+
+    #iterate through time steps
+    for i in range(0, len(timeStamps)):
+        #extract number w/o units
+        def num(string): return float(str(eng["KE"][i]).split(" ")[0])
+        eng = energytotals
+        writer.writerow({'t':           timeStamps[i], 
+                         "KE":          num(eng["KE"][i]),
+                         "PE_grav":     num(eng["PE_grav"][i]),
+                         "PE_mag":      num(eng["PE_mag"][i]),
+                         "PE_cr":       num(eng["PE_cr"][i]),
+                         "PE_thermo":   num(eng["PE_thermo"][i]),
+                         "total":       num(eng["total"][i])    })
+print(".csv output file written.")
+
+#plot things
+plt.plot(timeStamps, energytotals['total'])
+plt.title("Total energy")
+plt.savefig(pwd + '/Conservation/TotalEnergy')
+
+#plot all energies on one plot
+fields = []
+for field in energytotals:
+    plt.plot(timeStamps, energytotals[field])
+    fields.append(field)
+plt.title("All energies")
+plt.legend(fields)
+plt.savefig(pwd + '/Conservation/AllEnergies')
+print("Plotting finished.")
+
+#plot variation of energies from initial values
+initValues = {
+            "KE":          energytotals["KE"][0],
+            "PE_grav":     energytotals["PE_grav"][0],
+            "PE_mag":      energytotals["PE_mag"][0],
+            "PE_cr":       energytotals["PE_cr"][0],
+            "PE_thermo":   energytotals["PE_thermo"][0],
+            "total":       energytotals["total"][0]    
+            }
+variation = {'total':[],
+            'KE': [], 
+            'PE_grav': [], 
+            'PE_mag': [], 
+            'PE_cr': [], 
+            'PE_thermo': []} 
+
+fields = []
+for field in energytotals:
+    plt.plot(timeStamps, energytotals[field])
+    fields.append(field)
+plt.title("All energies; variation")
+plt.legend(fields)
+plt.savefig(pwd + '/Conservation/AllEnergies')
+print("Plotting finished.")
+
+#%%
+
+################
+# Examine fields
+################
+
+### compare derived KE field with classical KE calculation
 # print(ds.field_list)
 # print(ds.derived_field_list)
 
@@ -131,20 +238,19 @@ v = ad[('gas', 'velocity_magnitude')][0]
 print(0.5 * m * (v**2))
 # print(vol * 0.5 * m * (v**2))
 
+#KE and classical KE nearly identical, therefore
 #Thermal energy NOT INCLUDED in KE; must track separately
 #%%
+### repeat for full array
 
 print("\nTOTAL energies:")
 print(sum(ad[('gas', 'kinetic_energy')])* ad[('gas', 'cell_volume')][0])
-# m = sum(ad[('gas', 'cell_mass')]) #in g
-# v = sum(ad[('gas', 'velocity_magnitude')]) #in cm/s
-# print(0.5 * m * (v**2))
 m = ad[('gas', 'cell_mass')] #in g
 v = ad[('gas', 'velocity_magnitude')] #in cm/s
-print(sum(0.5 * m * (v**2)))
+print(sum(0.5 * m * (v**2))) #be sure to sum AFTER calculation
 
-print('\n')
-print("Units: " + str(ds.mass_unit) + ", " + str(ds.length_unit) + ", " + str(ds.temperature_unit))
+## access units
+print("\nUnits: " + str(ds.mass_unit) + ", " + str(ds.length_unit) + ", " + str(ds.temperature_unit))
 print('cray units in ergs/g')
 #%%
 
@@ -223,7 +329,7 @@ for fileName in os.listdir(filedirectory):
 beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-print("Mass calc done. Time elapsed (sec): " + str(time.time()-startTime))
+print("Energy conservation done. Time elapsed (sec): " + str(time.time()-startTime))
 
 #%%
 ### save important data as .csv

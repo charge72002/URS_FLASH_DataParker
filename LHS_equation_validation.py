@@ -19,7 +19,8 @@ def LHS (y, v=0): #array-likes
         templist = list()
         convert = 3.1709792E-15 #cm/10Myr --> cm/s
         for i in range(1, len(y)):
-            templist.append( (y[i-1] - y[i])*convert )
+            templist.append( (y[i] - y[i-1])*convert )
+        # print(templist)
         v = np.asarray(templist)
         print(v)
     
