@@ -21,7 +21,7 @@ def LHS (y, v=0): #array-likes
         for i in range(1, len(y)):
             templist.append( (y[i-1] - y[i])*convert )
         v = np.asarray(templist)
-        # print(v)
+        print(v)
     
     newy = list()
     vsquared = list()
@@ -46,6 +46,7 @@ y = [
 -4.98558E+21,
 -4.04906E+21,
 -3.22272E+21]
+print("\nUpper bubble:\n" + str(y))
 print(LHS(y))
 
 #lower bubble 1 (red)
@@ -54,6 +55,7 @@ y = [
 -1.01640E+22,
 -1.06047E+22,
 -1.10454E+22]
+print("\nLower bubble 1 (red):\n" + str(y))
 print(LHS(y))
 
 #lower bubble 2 (green)
@@ -61,4 +63,5 @@ y = [
 -8.84183E+21,
 -9.32520E+21,
 -5.59156E+21]
+print("\nLower bubble 2 (green):\n" + str(y))
 print(LHS(y))
