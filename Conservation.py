@@ -76,7 +76,7 @@ class energies:
         # self.PE_cr = cray * (1/(gamma_cr-1)) * m #using Roark cray pres
         self.PE_cr = cray * mass
         self.PE_thermo = pressure * (1/(ds.gamma-1)) * volume
-        print("energies.totals() done. Time elapsed (sec): " + str(time.time()-startTime))
+        print("energies.__init__() done. Time elapsed (sec): " + str(time.time()-startTime))
 
         
     """Returns a dictionary with field totals, including the total energy combined"""
@@ -103,7 +103,8 @@ saveDirectory = "D:/URS_LargeData/SherryPlots"
 # path.exists(saveDirectory)
 
 #%%
-ds = yt.load(filename)
+filenameTemp = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0001"
+ds = yt.load(filenameTemp)
 ad = ds.all_data()
 
 #%%
@@ -170,7 +171,7 @@ with open(pwd + '/Conservation/EnergiesTotal.csv', 'w', newline='') as csvfile:
     #iterate through time steps
     for i in range(0, len(timeStamps)):
         #extract number w/o units
-        def num(string): return float(str(eng["KE"][i]).split(" ")[0])
+        def num(string): return float(str(string).split(" ")[0])
         eng = energytotals
         writer.writerow({'t':           timeStamps[i], 
                          "KE":          num(eng["KE"][i]),
@@ -181,6 +182,17 @@ with open(pwd + '/Conservation/EnergiesTotal.csv', 'w', newline='') as csvfile:
                          "total":       num(eng["total"][i])    })
 print(".csv output file written.")
 
+#%%
+### examine fields
+for field in energytotals.keys(): 
+    if(field != 't'):
+        print(str(field) + ": ")
+        #vars() prints all variables in an object
+        print("\tAvg: \t" + str(np.mean(energytotals[field])))
+        print("\tMax: \t" + str(np.max(energytotals[field])))
+        print("\tMin: \t" + str(np.min(energytotals[field])))
+        
+#%%
 #plot things
 plt.plot(timeStamps, energytotals['total'])
 plt.title("Total energy")
@@ -188,15 +200,26 @@ plt.savefig(pwd + '/Conservation/TotalEnergy')
 
 #plot all energies on one plot
 fields = []
+fig, ax = plt.subplots()
 for field in energytotals:
-    plt.plot(timeStamps, energytotals[field])
+    ax.plot(timeStamps, energytotals[field])
     fields.append(field)
-plt.title("All energies")
-plt.legend(fields)
-plt.savefig(pwd + '/Conservation/AllEnergies')
+fig.suptitle("All energies")
+ax.legend(fields)
+fig.savefig(pwd + '/Conservation/AllEnergies')
 print("Plotting finished.")
+# fields = []
+# for field in energytotals:
+#     plt.plot(timeStamps, energytotals[field])
+#     fields.append(field)
+# plt.title("All energies; variation")
+# plt.legend(fields)
+# plt.savefig(pwd + '/Conservation/AllEnergies')
+# print("Plotting finished.")
 
-#plot variation of energies from initial values
+
+#%%
+## plot variation of energies from initial values
 initValues = {
             "KE":          energytotals["KE"][0],
             "PE_grav":     energytotals["PE_grav"][0],
@@ -211,15 +234,35 @@ variation = {'total':[],
             'PE_mag': [], 
             'PE_cr': [], 
             'PE_thermo': []} 
+for i in timeStamps:
+    for field in energytotals.keys():
+        variation[field].append(energytotals[field][i]-initValues[field])
 
 fields = []
 for field in energytotals:
-    plt.plot(timeStamps, energytotals[field])
+    plt.plot(timeStamps, variation[field])
     fields.append(field)
 plt.title("All energies; variation")
 plt.legend(fields)
-plt.savefig(pwd + '/Conservation/AllEnergies')
+plt.savefig(pwd + '/Conservation/Variation')
 print("Plotting finished.")
+
+#%%
+### READ csv
+energytotals = {}
+timestamps = []
+with open(pwd + '/Conservation/EnergiesTotal.csv', 'r', newline='') as csvfile:
+    r = csv.DictReader(csvfile)
+    linenum=0
+    for row in r:
+        # print(row.keys())
+        for label in row: 
+            if(linenum==0): energytotals[label] = [] #init
+            energytotals[label].append(float(row[label]))
+        linenum+=1
+    print(str(linenum) + " lines read.")
+    print(energytotals.keys())
+timeStamps = energytotals.pop('t')
 
 #%%
 
