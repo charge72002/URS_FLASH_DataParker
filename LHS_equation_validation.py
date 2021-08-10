@@ -62,7 +62,6 @@ print(LHS(y))
 #lower bubble 2 (green)
 y = [
 -8.84183E+21,
--9.32520E+21,
--5.59156E+21]
+-9.32520E+21]
 print("\nLower bubble 2 (green):\n" + str(y))
 print(LHS(y))

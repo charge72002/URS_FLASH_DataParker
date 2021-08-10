@@ -21,6 +21,8 @@ import yt
 import matplotlib.pyplot as plt
 from yt.units import cm
 
+import numpy as np
+
 import sys
 sys.path.insert(0, pwd)
 # Sherry packages
@@ -47,15 +49,17 @@ plt.plot([0, len(ad[('gas', 'magnetic_field_magnitude')])], [0, 0], lw=1) #lines
 
 #%%
 # plot bubble positions on yt slice
-TFselect = ad[('gas', 'magnetic_field_magnitude')] < 0.5E-9 #using this threshold
+TFselect = ad[('gas', 'magnetic_field_magnitude')] < 1.25E-9 #using this threshold
 print(str(sum(TFselect)) + " matches")
 
 xbubblepos = ad['x'][TFselect]
 ybubblepos = ad['y'][TFselect]
 
 slc = yt.SlicePlot(ds, 'z', 'magnetic_field_magnitude')
+# slc = yt.SlicePlot(ds, 'z', 'density')
 slc.annotate_streamlines('magnetic_field_x','magnetic_field_y', density=6, plot_args={'linewidth':0.25,'color':'r'})
 length = 1E21*cm
+#plot '+' on percieved bubble positions
 for i in range(0, len(xbubblepos)):
     x = xbubblepos[i]
     y = ybubblepos[i]
@@ -64,10 +68,10 @@ for i in range(0, len(xbubblepos)):
 slc.save(pwd + "/bubble_velocity_2D/MagMagnitude")
 
 #%%
-# iterative implementation
-TFselect = ad[('gas', 'magnetic_field_magnitude')] < 0.25E-9 #using this threshold
+# iterative implementation of threshold
+TFselect = ad[('gas', 'magnetic_field_magnitude')] < 1.25E-9 #using this threshold
 print(str(sum(TFselect)) + " matches")
-
+    
 slc = yt.SlicePlot(ds, 'z', 'magnetic_field_magnitude')
 slc.annotate_streamlines('magnetic_field_x','magnetic_field_y', density=6, plot_args={'linewidth':0.25,'color':'r'})
 length = 1E21*cm
@@ -78,5 +82,5 @@ for i in range(0, len(TFselect)):
         if avgSlope > 5*(10**-11):
             slc.annotate_line((x, y+length, 0), (x, y-length, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
             slc.annotate_line((x+length, y, 0), (x-length, y, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
-slc.save(pwd + "/bubble_velocity_2D/MagMagnitude")
+slc.save(pwd + "/bubble_velocity_2D/MagMagnitudeTrim")
    
