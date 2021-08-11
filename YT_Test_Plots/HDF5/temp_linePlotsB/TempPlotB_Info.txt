@@ -1,0 +1,3 @@
+Temp Line Plots B
+Column 12
+2.320198554711625e+22

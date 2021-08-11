@@ -1,0 +1,5 @@
+#this is called an octothorpe (or a pound or a hash or a mesh)
+print("3 + 2 = " + (3 + 2))
+print("3 - 2 = " + (3 - 2))
+print("3 * 2 = " + (3 * 2))
+print("3 / 2 = " + (3 / 2))

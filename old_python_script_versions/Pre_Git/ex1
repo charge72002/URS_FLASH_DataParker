@@ -1,0 +1,6 @@
+#this is called an octothorpe (or a pound or a hash or a mesh)
+print("Hello World!")
+print("Hello Again")
+print("But wait, there's more")
+print("owo more 'quotes'?")
+print('uwu other "quotes"?')
