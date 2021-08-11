@@ -17,7 +17,8 @@ filedirectory = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot File
 pwd = "/Users/bwong/URS_FLASH_DataParker"
 #%%
 import yt
-from yt.units import *
+#adjust units as needed, otherwise it's alot
+from yt.units import cm, kpc, erg, g, dyne
 import os
 import os.path
 from os import path
@@ -193,33 +194,30 @@ for field in energytotals.keys():
         print("\tMin: \t" + str(np.min(energytotals[field])))
         
 #%%
-#plot things
+## plot energy total
+plt.close()
 plt.plot(timeStamps, energytotals['total'])
 plt.title("Total energy")
 plt.savefig(pwd + '/Conservation/TotalEnergy')
 
-#plot all energies on one plot
-fields = []
+#%%
+## plot all energies on one plot
+plt.close()
 fig, ax = plt.subplots()
 for field in energytotals:
-    ax.plot(timeStamps, energytotals[field])
-    fields.append(field)
+    ax.plot(timeStamps, energytotals[field], label=field)
 fig.suptitle("All energies")
-ax.legend(fields)
+ax.legend()
+## fields in order
+# ax.legend(['total', 'KE', 'PE_cr', 'PE_thermo','PE_mag', 'PE_grav'])
 fig.savefig(pwd + '/Conservation/AllEnergies')
 print("Plotting finished.")
-# fields = []
-# for field in energytotals:
-#     plt.plot(timeStamps, energytotals[field])
-#     fields.append(field)
-# plt.title("All energies; variation")
-# plt.legend(fields)
-# plt.savefig(pwd + '/Conservation/AllEnergies')
-# print("Plotting finished.")
-
 
 #%%
 ## plot variation of energies from initial values
+plt.clf()
+plt.close()
+
 initValues = {
             "KE":          energytotals["KE"][0],
             "PE_grav":     energytotals["PE_grav"][0],
@@ -235,17 +233,25 @@ variation = {'total':[],
             'PE_cr': [], 
             'PE_thermo': []} 
 for i in timeStamps:
-    for field in energytotals.keys():
-        variation[field].append(energytotals[field][i]-initValues[field])
+    for field in variation.keys():
+        variation[field].append( energytotals[field][int(i)] - initValues[field] )
 
-fields = []
-for field in energytotals:
-    plt.plot(timeStamps, variation[field])
-    fields.append(field)
-plt.title("All energies; variation")
-plt.legend(fields)
-plt.savefig(pwd + '/Conservation/Variation')
+fig, ax = plt.subplots()
+for field in variation:
+    ax.plot(timeStamps, variation[field], label=field)
+# ax.set_yscale('symlog')
+fig.suptitle("All energies; variation")
+ax.legend()
+fig.savefig(pwd + '/Conservation/VariationB')
 print("Plotting finished.")
+
+
+#%%
+## just the total mass log for testing
+fig, ax = plt.subplots()
+ax.plot(timeStamps, variation['total'])
+ax.set_yscale('symlog')
+fig.suptitle("Total energy; log variation")
 
 #%%
 ### READ csv
