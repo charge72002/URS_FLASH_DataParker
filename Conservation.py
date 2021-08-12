@@ -205,12 +205,16 @@ plt.savefig(pwd + '/Conservation/TotalEnergy')
 plt.close()
 fig, ax = plt.subplots()
 for field in energytotals:
-    ax.plot(timeStamps, energytotals[field], label=field)
+    if (field=="PE_grav"): #later
+        # invertgrav = np.abs(energytotals['PE_grav'])
+        ax.semilogy(timeStamps, np.abs(energytotals['PE_grav']), label=field)
+    if not(field=="KE"):
+        ax.semilogy(timeStamps, energytotals[field], label=field)
 fig.suptitle("All energies")
 ax.legend()
 ## fields in order
 # ax.legend(['total', 'KE', 'PE_cr', 'PE_thermo','PE_mag', 'PE_grav'])
-fig.savefig(pwd + '/Conservation/AllEnergies')
+fig.savefig(pwd + '/Conservation/AllEnergiesLogNOKE')
 print("Plotting finished.")
 
 #%%
@@ -237,12 +241,18 @@ for i in timeStamps:
         variation[field].append( energytotals[field][int(i)] - initValues[field] )
 
 fig, ax = plt.subplots()
+labels = {'total': 'Total Energy', 'KE': 'Kinetic Energy', 'PE_grav': 'Gravitational Energy',
+          'PE_mag': 'Magnetic Energy', 'PE_cr': 'Cosmic Ray Energy', 'PE_thermo': 'Thermal Energy'}
 for field in variation:
-    ax.plot(timeStamps, variation[field], label=field)
+    ax.plot(timeStamps, variation[field], label=labels[field], lw=2.5)
+    ax.axvline(70, color='black')
+    ax.axvline(100, color='black')
+    # ax.plot(timeStamps, np.abs(np.divide(variation[field], 10**54)), label=labels[field])
+# ax.plot(timeStamps, np.abs(np.divide(variation['total'], 10**54)), label=field)
 # ax.set_yscale('symlog')
 fig.suptitle("All energies; variation")
 ax.legend()
-fig.savefig(pwd + '/Conservation/VariationB')
+fig.savefig(pwd + '/Conservation/Variation')
 print("Plotting finished.")
 
 
