@@ -25,13 +25,13 @@ def calcVelocity(y, y0=0, v0=0):
         print("Inside the disk 2")
         b = 2*C*H*math.log(math.cosh(y0/H))
         c = 2*C*H*math.log(math.cosh(y/H))
-        X = 0.5v0**2 - b + c
+        X = 0.5*v0**2 - b + c
         # print(X)
         #resolve sign issue
         if(X>0): return 2*math.sqrt(X)
         else: return -2*(math.sqrt(-X))
     else:
-        # g = calcGravity(y) 
+        g = calcGravity(y) 
         #Constant gravity; tanh(y/H)~1
         v = math.sqrt( abs(2*y*C) )
         if(g<0): v*=-1;

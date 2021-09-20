@@ -331,49 +331,49 @@ class athdf(dict):
     # Open file
     with h5py.File(filename, 'r') as f:
 
-      # Extract size information
-      self.max_level = f.attrs['MaxLevel']
-      if self.level is None:
-        self.level = self.max_level
-      self.block_size = f.attrs['MeshBlockSize']
-      root_grid_size = f.attrs['RootGridSize']
-      self.levels = f['Levels'][:]
-      self.logical_locations = f['LogicalLocations'][:]
-      nx_vals = []
-      for d in range(3):
-        if self.block_size[d] == 1 and root_grid_size[d] > 1:  # sum or slice
-          other_locations = [location for location in zip(self.levels, \
-              self.logical_locations[:,(d+1)%3], self.logical_locations[:,(d+2)%3])]
-          if len(set(other_locations)) == len(other_locations):  # effective slice
-            nx_vals.append(1)
-          else:  # nontrivial sum
-            num_blocks_this_dim = 0
-            for level_this_dim,loc_this_dim in \
-                zip(self.levels, self.logical_locations[:,d]):
-              if level_this_dim <= self.level:
-                num_blocks_this_dim = max(num_blocks_this_dim, \
-                    (loc_this_dim + 1) * 2 ** (self.level - level_this_dim))
-              else:
-                num_blocks_this_dim = max(num_blocks_this_dim, \
-                    (loc_this_dim + 1) / 2 ** (level_this_dim - self.level))
-            nx_vals.append(num_blocks_this_dim)
-        elif self.block_size[d] == 1:  # singleton dimension
-          nx_vals.append(1)
-        else:  # normal case
-          nx_vals.append(root_grid_size[d] * 2 ** self.level)
-      self.nx1 = nx_vals[0]
-      self.nx2 = nx_vals[1]
-      self.nx3 = nx_vals[2]
-      self.lx1 = self.nx1 / self.block_size[0]
-      self.lx2 = self.nx2 / self.block_size[1]
-      self.lx3 = self.nx3 / self.block_size[2]
-      self.num_extended_dims = 0
-      for nx in nx_vals:
-        if nx > 1:
-          self.num_extended_dims += 1
+       # Extract size information
+       # self.max_level = f.attrs['MaxLevel']
+       # if self.level is None:
+       #   self.level = self.max_level
+       # self.block_size = f.attrs['MeshBlockSize']
+       # root_grid_size = f.attrs['RootGridSize']
+       # self.levels = f['Levels'][:]
+       # self.logical_locations = f['LogicalLocations'][:]
+       # nx_vals = []
+       # for d in range(3):
+       #   if self.block_size[d] == 1 and root_grid_size[d] > 1:  # sum or slice
+       #     other_locations = [location for location in zip(self.levels, \
+       #         self.logical_locations[:,(d+1)%3], self.logical_locations[:,(d+2)%3])]
+       #     if len(set(other_locations)) == len(other_locations):  # effective slice
+       #       nx_vals.append(1)
+       #     else:  # nontrivial sum
+       #       num_blocks_this_dim = 0
+       #       for level_this_dim,loc_this_dim in \
+       #           zip(self.levels, self.logical_locations[:,d]):
+       #         if level_this_dim <= self.level:
+       #           num_blocks_this_dim = max(num_blocks_this_dim, \
+       #               (loc_this_dim + 1) * 2 ** (self.level - level_this_dim))
+       #         else:
+       #           num_blocks_this_dim = max(num_blocks_this_dim, \
+       #               (loc_this_dim + 1) / 2 ** (level_this_dim - self.level))
+       #       nx_vals.append(num_blocks_this_dim)
+       #   elif self.block_size[d] == 1:  # singleton dimension
+       #     nx_vals.append(1)
+       #   else:  # normal case
+       #     nx_vals.append(root_grid_size[d] * 2 ** self.level)
+       # self.nx1 = nx_vals[0]
+       # self.nx2 = nx_vals[1]
+       # self.nx3 = nx_vals[2]
+       # self.lx1 = self.nx1 / self.block_size[0]
+       # self.lx2 = self.nx2 / self.block_size[1]
+       # self.lx3 = self.nx3 / self.block_size[2]
+       # self.num_extended_dims = 0
+       # for nx in nx_vals:
+       #   if nx > 1:
+       #     self.num_extended_dims += 1
 
       # Set volume function for preset coordinates if needed
-      coord = (f.attrs['Coordinates']).decode("utf-8")
+      coord = (f['coordinates']).decode("utf-8")
       if self.level < self.max_level and not self.subsample and not self.fast_restrict \
           and self.vol_func is None:
         x1_rat = f.attrs['RootGridX1'][2]
