@@ -23,7 +23,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 sys.path.insert(0, pwd)
-import copy
+# import copy
 
 import athena_read as ath
 import h5py
@@ -107,37 +107,26 @@ print(len(twoD))
 
 #assign Z indicies to coordinate array
 coords = np.empty((xlen, xlen), dtype=float)
-X = np.empty((xlen, xlen), dtype=float)
-Y = np.empty((xlen, xlen), dtype=float)
+origX = np.empty((xlen, xlen), dtype=float)
+origY = np.empty((xlen, xlen), dtype=float)
 for y in range(0, len(twoD)): #rows
     for x in range(0, len(twoD[y])): #cols
         index = twoD[y][x]
         xpos = ZorderX[index]
         ypos = ZorderY[index]
-        
-        X[y][x] = xpos
-        Y[y][x] = ypos
+        origX[y][x] = xpos
+        origY[y][x] = ypos
 
 
 ## Create 8x8 full resolution afterwards
-# stepX = X[0][1] - X[0][0] #array[Y][X]
-# stepY = Y[1][0] - Y[0][0] #array[Y][X]
-
-
-origX = copy.deepcopy(X)
-origY = copy.deepcopy(Y)
 stepX = origX[0][1] - origX[0][0]
 stepY = origY[1][0] - origY[0][0]
-# X = np.empty((xlen*8, xlen*8), dtype=float)
-# Y = np.empty((xlen*8, xlen*8), dtype=float)
-X = []
-Y = []
 # print("X step: " + str(stepX))
-# print("Y step: " + str(stepY))
+# print("Y step: " + str(stepY)) #step before 8x8 splitup
+X = np.empty((xlen*8, xlen*8), dtype=float)
+Y = np.empty((xlen*8, xlen*8), dtype=float)
 
-#arrayin - the 2D coordinate array you want to expand 8x8 each way
-#out - an empty 2D array
-# def expand (arrayin):
+
 arrayin = origX
 ylen = len(arrayin)
 xlen = len(arrayin[0])
@@ -148,15 +137,16 @@ for row in range(0, len(origX)):
         tempXlin = np.linspace(origX[row][col], origX[row][col] + stepX, 8)
         tempYlin = np.linspace(origY[row][col], origY[row][col] + stepY, 8)
         tempMeshgrid = np.meshgrid(tempXlin, tempYlin)
-        for row in range(0, len(tempMeshgrid[0])):
-            X.append(tempMeshgrid[0][row])
-            Y.append(tempMeshgrid[1][row])
+        #iterate row/col of small meshgrid
+        for subrow in range(0, len(tempMeshgrid[0])):
+            for subcol in range(0, len(tempMeshgrid[0][0])):
+                #Transform origX coords into X coords (8x8 bigger)
+                ROW = (row*8)+subrow
+                COL = (col*8)+subcol
+                X[ROW][COL] = tempMeshgrid[0][subrow][subcol]
+                Y[ROW][COL] = tempMeshgrid[1][subrow][subcol]
 X, Y = (np.asarray(X), np.asarray(Y))
-# # print("Length of posX flattened: " + str(len(X.flatten())))
-# X = X.flatten()
-# Y = Y.flatten()
-        # tempXlin = np.linspace(coord[0], coord[0] + stepX, 8)
-        # out.append(np.asarray(tempMeshgrid[0]).flatten)
+
     
 
 plt.clf()
