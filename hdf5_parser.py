@@ -71,12 +71,12 @@ def setup(fileName, format="Z"):
         
         return {"posXarray" : posXarray, 
                 "posYarray" : posYarray, 
-                "velXarray" : fieldParse(file, 'velx'), 
-                "velYarray" : fieldParse(file, 'vely'), 
-                "densityArray" : fieldParse(file, 'dens'), 
-                "tempArray" : fieldParse(file, 'temp'),
-                "magXarray" : fieldParse(file, 'magx'),
-                "magYarray" : fieldParse(file, 'magy')}
+                "velXarray" : ZtoCartesian(fieldParse(file, 'velx')), 
+                "velYarray" : ZtoCartesian(fieldParse(file, 'vely')), 
+                "densityArray" : ZtoCartesian(fieldParse(file, 'dens')), 
+                "tempArray" : ZtoCartesian(fieldParse(file, 'temp')),
+                "magXarray" : ZtoCartesian(fieldParse(file, 'magx')),
+                "magYarray" : ZtoCartesian(fieldParse(file, 'magy'))}
     else:
         raise Exception("Invalid format " + format)
     #END OF METHOD
@@ -100,7 +100,23 @@ def customSetup(fileName, fieldList):
     return result;
     #END OF METHOD
 
+## For below methods, @see CoordinateReshapeAto2D.py
+#helper method for ZtoCartesian() and cartesianCoordinates()
+def seqGenerator (n):
+    result = [0, 1]
+    for i in range(2, n):
+        if i%2==0:  #even
+            # print("even " + str(int(i/2)))
+            result.append(4*result[int(i/2)])
+        else:       #odd
+            # print("odd " + str(int((i/2))-1))
+            result.append(4*result[int((i/2))]+1)
+    return result
 
+#Use Moser-De Brujin sequence to transform a 1D Z ordered array into a 
+#2D cartesian array.
+#takes a 1D Z-ordered array
+#returns a 2D cartesian array
 def ZtoCartesian(field):    
     #setup large sequence
     xlen = int( np.sqrt(len(field)) ) #ASSUME SQUARE BOX
@@ -120,11 +136,15 @@ def ZtoCartesian(field):
         for x in range(0, len(twoD[y])): #cols
             index = twoD[y][x]
             result[y][x] = field[index]
+    return np.asarray(result)
     
 
     return result
     
-def cartesianCoordinatesLessLines(file):
+#apply method to coordinates in the file.
+#accepts an hdf5 file
+#returns 2D arrays X, Y
+def cartesianCoordinates(file):
     ZorderX = []
     ZorderY = []
     #iterate and separate XYZ coordinates
@@ -142,7 +162,6 @@ def cartesianCoordinatesLessLines(file):
     X = np.empty((xlen*8, xlen*8), dtype=float)
     Y = np.empty((xlen*8, xlen*8), dtype=float)
     
-    
     arrayin = origX
     ylen = len(arrayin)
     xlen = len(arrayin[0])
@@ -163,87 +182,4 @@ def cartesianCoordinatesLessLines(file):
     X, Y = (np.asarray(X), np.asarray(Y))
     return X, Y
 
-#
-def cartesianCoordinates(file):
-    
-    #initialize variables
-    ZorderX = []
-    ZorderY = []
-    #iterate and separate XYZ coordinates
-    for xyz in file['coordinates']:
-        ZorderX.append(xyz[0])
-        ZorderY.append(xyz[1])
-    
-    #setup large sequence
-    xlen = int( np.sqrt(len(ZorderX)) ) #ASSUME SQUARE BOX
-    A = np.asarray(seqGenerator(xlen))
-    B = np.multiply(2, A)
-    twoD = []
-    for b in B:
-        tempArray = [] 
-        for a in A:
-            tempArray.append(a+b)
-        twoD.append(tempArray)
-    print(len(twoD))
-    
-    #assign Z indicies to coordinate array
-    coords = np.empty((xlen, xlen), dtype=float)
-    origX = np.empty((xlen, xlen), dtype=float)
-    origY = np.empty((xlen, xlen), dtype=float)
-    for y in range(0, len(twoD)): #rows
-        for x in range(0, len(twoD[y])): #cols
-            index = twoD[y][x]
-            xpos = ZorderX[index]
-            ypos = ZorderY[index]
-            origX[y][x] = xpos
-            origY[y][x] = ypos
-    
-    ## Create 8x8 full resolution afterwards
-    stepX = origX[0][1] - origX[0][0]
-    stepY = origY[1][0] - origY[0][0]
-    X = np.empty((xlen*8, xlen*8), dtype=float)
-    Y = np.empty((xlen*8, xlen*8), dtype=float)
-    
-    
-    arrayin = origX
-    ylen = len(arrayin)
-    xlen = len(arrayin[0])
-    # out = np.empty((ylen, xlen), dtype=float)
-    
-    for row in range(0, len(origX)):
-        for col in range(0, len(origX[row])):
-            tempXlin = np.linspace(origX[row][col], origX[row][col] + stepX, 8)
-            tempYlin = np.linspace(origY[row][col], origY[row][col] + stepY, 8)
-            tempMeshgrid = np.meshgrid(tempXlin, tempYlin)
-            #iterate row/col of small meshgrid
-            for subrow in range(0, len(tempMeshgrid[0])):
-                for subcol in range(0, len(tempMeshgrid[0][0])):
-                    #Transform origX coords into X coords (8x8 bigger)
-                    ROW = (row*8)+subrow
-                    COL = (col*8)+subcol
-                    X[ROW][COL] = tempMeshgrid[0][subrow][subcol]
-                    Y[ROW][COL] = tempMeshgrid[1][subrow][subcol]
-    X, Y = (np.asarray(X), np.asarray(Y))
-    return X, Y
 
-#helper method for ZtoCartesian() and cartesianCoordinates()
-def seqGenerator (n):
-    result = [0, 1]
-    for i in range(2, n):
-        if i%2==0:  #even
-            # print("even " + str(int(i/2)))
-            result.append(4*result[int(i/2)])
-        else:       #odd
-            # print("odd " + str(int((i/2))-1))
-            result.append(4*result[int((i/2))]+1)
-    return result
-
-#test that these two cases are identical
-filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
-a = cartesianCoordinatesLessLines(h5py.File(filename, 'r'))
-b = cartesianCoordinates(h5py.File(filename, 'r'))
-for x in range(0, len(a)):
-    for y in range(0, len(a[0])):
-        for z in range(0, len(a[0][0])):
-            if a[x][y][z]!=b[x][y][z]:
-                print('FLAG')

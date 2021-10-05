@@ -22,6 +22,7 @@ pwd = "/Users/bwong/URS_FLASH_DataParker"
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+from matplotlib import ticker, cm #for log scale
 sys.path.insert(0, pwd)
 # import copy
 
@@ -160,4 +161,21 @@ plt.plot(X, Y)
 ##RESULT? No good. Z order combined with existing hdf5_parser code
 ##        mixed up 8x8 cartesian and z order arrays.
 #%%
-### New Z order to cartesian attempt
+### test defined method
+
+X, Y = hdf5_parser.cartesianCoordinates(h5py.File(filename, 'r'))
+plt.clf()
+plt.plot(X, Y)
+
+#%%
+newOut = hdf5_parser.setup(filename, format = "cartesian")
+x = newOut['posXarray'].flatten()
+y = newOut['posYarray'].flatten()
+z = newOut['densityArray'].flatten()
+# from matplotlib import ticker, cm #for log scale
+# plt.tricontourf(x, y, z, levels=100, locator=ticker.LogLocator())
+
+lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+plt.clf
+plt.tricontourf(x, y, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
+plt.savefig(pwd + "/Plots/Zmess.png")
