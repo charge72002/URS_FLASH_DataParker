@@ -71,12 +71,18 @@ def setup(fileName, format="Z"):
         
         return {"posXarray" : posXarray, 
                 "posYarray" : posYarray, 
-                "velXarray" : ZtoCartesian(fieldParse(file, 'velx')), 
-                "velYarray" : ZtoCartesian(fieldParse(file, 'vely')), 
-                "densityArray" : ZtoCartesian(fieldParse(file, 'dens')), 
-                "tempArray" : ZtoCartesian(fieldParse(file, 'temp')),
-                "magXarray" : ZtoCartesian(fieldParse(file, 'magx')),
-                "magYarray" : ZtoCartesian(fieldParse(file, 'magy'))}
+                "velXarray" : ZtoCartesian(file['velx']), 
+                "velYarray" : ZtoCartesian(file['vely']), 
+                "densityArray" : ZtoCartesian(file['dens']), 
+                "tempArray" : ZtoCartesian(file['temp']),
+                "magXarray" : ZtoCartesian(file['magx']),
+                "magYarray" : ZtoCartesian(file['magy'])}
+                # "velXarray" : ZtoCartesian(fieldParse(file, 'velx')), 
+                # "velYarray" : ZtoCartesian(fieldParse(file, 'vely')), 
+                # "densityArray" : ZtoCartesian(fieldParse(file, 'dens')), 
+                # "tempArray" : ZtoCartesian(fieldParse(file, 'temp')),
+                # "magXarray" : ZtoCartesian(fieldParse(file, 'magx')),
+                # "magYarray" : ZtoCartesian(fieldParse(file, 'magy'))}
     else:
         raise Exception("Invalid format " + format)
     #END OF METHOD
@@ -119,7 +125,8 @@ def seqGenerator (n):
 #returns a 2D cartesian array
 def ZtoCartesian(field):    
     #setup large sequence
-    xlen = int( np.sqrt(len(field)) ) #ASSUME SQUARE BOX
+    field = np.array(field)
+    xlen = int( np.sqrt(len(field))) #ASSUME SQUARE BOX
     A = np.asarray(seqGenerator(xlen))
     B = np.multiply(2, A)
     twoD = []
@@ -128,58 +135,83 @@ def ZtoCartesian(field):
         for a in A:
             tempArray.append(a+b)
         twoD.append(tempArray)
-    print(len(twoD))
+    print(np.shape(twoD))
     
     #assign Z indicies to coordinate array
+    xlen = xlen*8
     result = np.empty((xlen, xlen), dtype=float)
     for y in range(0, len(twoD)): #rows
         for x in range(0, len(twoD[y])): #cols
-            index = twoD[x][y]
-            result[y][x] = field[index]
+            index = twoD[y][x]
+            # result[y][x] = field[index][0][0][0]
+            #8x8 square
+            for y1 in range(0, 8):
+                for x1 in range(0, 8):
+                    result[(y*8)+y1][(x*8)+x1] = field[index][0][y1][x1]
+    print(np.shape(result))
     return np.asarray(result)
     
-
-    return result
-    
-#apply method to coordinates in the file.
-#accepts an hdf5 file
-#returns 2D arrays X, Y
 def cartesianCoordinates(file):
-    ZorderX = []
-    ZorderY = []
-    #iterate and separate XYZ coordinates
-    for xyz in file['coordinates']:
-        ZorderX.append(xyz[0])
-        ZorderY.append(xyz[1])
-    xlen = int( np.sqrt(len(ZorderX)) ) #ASSUME SQUARE BOX
-    
-    origX = ZtoCartesian(ZorderX)
-    origY = ZtoCartesian(ZorderY)
-    
-    # Create 8x8 full resolution afterwards
-    stepX = origX[0][1] - origX[0][0]
-    stepY = origY[1][0] - origY[0][0]
-    X = np.empty((xlen*8, xlen*8), dtype=float)
-    Y = np.empty((xlen*8, xlen*8), dtype=float)
-    
-    arrayin = origX
-    ylen = len(arrayin)
-    xlen = len(arrayin[0])
-    
-    for row in range(0, len(origX)):
-        for col in range(0, len(origX[row])):
-            tempXlin = np.linspace(origX[row][col], origX[row][col] + stepX, 8)
-            tempYlin = np.linspace(origY[row][col], origY[row][col] + stepY, 8)
-            tempMeshgrid = np.meshgrid(tempXlin, tempYlin)
-            #iterate row/col of small meshgrid
-            for subrow in range(0, len(tempMeshgrid[0])):
-                for subcol in range(0, len(tempMeshgrid[0][0])):
-                    #Transform origX coords into X coords (8x8 bigger)
-                    ROW = (row*8)+subrow
-                    COL = (col*8)+subcol
-                    X[ROW][COL] = tempMeshgrid[0][subrow][subcol]
-                    Y[ROW][COL] = tempMeshgrid[1][subrow][subcol]
-    X, Y = (np.asarray(X), np.asarray(Y))
-    return X, Y
+    #first, turn coordinates from shape (4096, 3) to 3 arrays (4096, 1, 8, 8)
+    coordField = file['coordinates']
+    stepX = coordField[1][0] - coordField[0][0]
+    stepY = coordField[2][1] - coordField[1][1] #bug was here
+
+    posX = [] #list
+    posY = [] #list
+    #borrow 8x8 from original coordinate setup
+    for coord in coordField:
+        tempXlin = np.linspace(coord[0], coord[0] + stepX, 8)
+        tempYlin = np.linspace(coord[1], coord[1] + stepY, 8)
+        tempMeshgrid = np.meshgrid(tempXlin, tempYlin)
+        posX.append([tempMeshgrid[0]]) #extra brackets for the 1 in (4096, 1, 8, 8)
+        posY.append([tempMeshgrid[1]])
+
+    posXresult = ZtoCartesian(posX)
+    posYresult = ZtoCartesian(posY)
+    return (posXresult, posYresult)
+
+# =============================================================================
+# #apply method to coordinates in the file.
+# #accepts an hdf5 file
+# #returns 2D arrays X, Y
+# def cartesianCoordinates(file):
+#     ZorderX = []
+#     ZorderY = []
+#     #iterate and separate XYZ coordinates
+#     for xyz in file['coordinates']:
+#         ZorderX.append(xyz[0])
+#         ZorderY.append(xyz[1])
+#     xlen = int( np.sqrt(len(ZorderX)) ) #ASSUME SQUARE BOX
+#     
+#     origX = ZtoCartesian(ZorderX)
+#     origY = ZtoCartesian(ZorderY)
+#     
+#     # Create 8x8 full resolution afterwards
+#     stepX = origX[0][1] - origX[0][0]
+#     stepY = origY[1][0] - origY[0][0]
+#     X = np.empty((xlen*8, xlen*8), dtype=float)
+#     Y = np.empty((xlen*8, xlen*8), dtype=float)
+#     
+#     arrayin = origX
+#     ylen = len(arrayin)
+#     xlen = len(arrayin[0])
+#     
+#     for row in range(0, len(origX)):
+#         for col in range(0, len(origX[row])):
+#             tempXlin = np.linspace(origX[row][col], origX[row][col] + stepX, 8)
+#             tempYlin = np.linspace(origY[row][col], origY[row][col] + stepY, 8)
+#             tempMeshgrid = np.meshgrid(tempXlin, tempYlin)
+#             #iterate row/col of small meshgrid
+#             for subrow in range(0, len(tempMeshgrid[0])):
+#                 for subcol in range(0, len(tempMeshgrid[0][0])):
+#                     #Transform origX coords into X coords (8x8 bigger)
+#                     ROW = (row*8)+subrow
+#                     COL = (col*8)+subcol
+#                     X[ROW][COL] = tempMeshgrid[0][subrow][subcol]
+#                     Y[ROW][COL] = tempMeshgrid[1][subrow][subcol]
+#     X, Y = (np.asarray(X), np.asarray(Y))
+#     return X, Y
+# =============================================================================
 
 
