@@ -134,7 +134,7 @@ def ZtoCartesian(field):
     result = np.empty((xlen, xlen), dtype=float)
     for y in range(0, len(twoD)): #rows
         for x in range(0, len(twoD[y])): #cols
-            index = twoD[y][x]
+            index = twoD[x][y]
             result[y][x] = field[index]
     return np.asarray(result)
     

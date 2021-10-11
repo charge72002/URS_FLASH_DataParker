@@ -165,7 +165,12 @@ plt.plot(X, Y)
 
 X, Y = hdf5_parser.cartesianCoordinates(h5py.File(filename, 'r'))
 plt.clf()
-plt.plot(X, Y)
+# plt.plot(X, Y)
+# colormap = np.linspace(1, len(X)*512, len(X)*512)
+#repeat 2D 512 times
+colormap = np.meshgrid(np.linspace(1, len(X), len(X)), np.empty(len(X), dtype=float))[0]
+plt.scatter(X, Y, s=1, c=colormap)
+plt.savefig(pwd + "/Plots/CoordGradientX.png")
 
 #%%
 newOut = hdf5_parser.setup(filename, format = "cartesian")
@@ -178,4 +183,4 @@ z = newOut['densityArray'].flatten()
 lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
 plt.clf
 plt.tricontourf(x, y, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
-plt.savefig(pwd + "/Plots/Zmess.png")
+plt.savefig(pwd + "/Plots/Zmess3.png")
