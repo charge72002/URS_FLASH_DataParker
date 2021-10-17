@@ -161,8 +161,8 @@ def cartesianCoordinates(file):
     posY = [] #list
     #borrow 8x8 from original coordinate setup
     for coord in coordField:
-        tempXlin = np.linspace(coord[0], coord[0] + stepX, 8)
-        tempYlin = np.linspace(coord[1], coord[1] + stepY, 8)
+        tempXlin = np.linspace(coord[0], coord[0] + stepX, 9)[0:8]
+        tempYlin = np.linspace(coord[1], coord[1] + stepY, 9)[0:8]
         tempMeshgrid = np.meshgrid(tempXlin, tempYlin)
         posX.append([tempMeshgrid[0]]) #extra brackets for the 1 in (4096, 1, 8, 8)
         posY.append([tempMeshgrid[1]])
