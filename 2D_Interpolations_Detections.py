@@ -50,13 +50,33 @@ plt.savefig(pwd + "/Plots/ZcleanB1.png")
 
 #row 0
 row = 200
-x = newOut['posXarray'][0]
-magY = newOut['magYarray'][0]
+x = newOut['posXarray'][row]
+magY = newOut['magYarray'][row]
 Xslice = interp.interp1d(x, magY)
 
-y = newOut['posYarray'][0]
-magX = newOut['magXarray'][0]
-Yslice = interp.interp1d(y, magX)
+# y = newOut['posYarray'][0]
+# magX = newOut['magXarray'][0]
+# Yslice = interp.interp1d(y, magX)
+
+xnew = np.linspace(x.min(), x.max(), 512)
+ynew = Xslice(xnew)   # use interpolation function returned by `interp1d`
+plt.clf()
+plt.plot(x, magY, 'o', xnew, ynew, '-')
+plt.plot([x.min(), x.max()], [0, 0])
+# plt.plot(x, magY)
+plt.savefig(pwd + "/Plots/1Dinterp.png")
+
+
+#%%
+#plot where the lines are
+x = newOut['posXarray'].flatten()
+y = newOut['posYarray'].flatten()
+z = newOut['densityArray'].flatten()
+plt.clf()
+plt.tricontourf(x, y, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
+plt.plot([x.min(), x.max()], [y[row][0], y[row][0]])
+plt.savefig(pwd + "/Plots/Xslice.png")
+
 
 #%% 2D interpolate
 ## find zeros
