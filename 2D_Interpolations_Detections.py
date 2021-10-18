@@ -46,7 +46,7 @@ plt.clf()
 plt.tricontourf(x, y, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 plt.savefig(pwd + "/Plots/ZcleanB1.png")
 
-#%% interpolate
+#%% 1D interpolate
 
 #row 0
 row = 200
@@ -56,20 +56,24 @@ Xslice = interp.interp1d(x, magY)
 
 y = newOut['posYarray'][0]
 magX = newOut['magXarray'][0]
-Xslice = interp.interp1d(y, magX)
+Yslice = interp.interp1d(y, magX)
 
-#%%
+#%% 2D interpolate
 ## find zeros
 x = newOut['posXarray']
-Y = newOut['posYarray']
+y = newOut['posYarray']
+magY = newOut['magYarray']
+magX = newOut['magXarray']
 pow(np.asarray([1, 2, 3]), 2)
 mag = np.sqrt(pow(magX, 2) + pow(magY, 2))
-magInterp = interp.RectBivariateSpline(x, y, mag)
+# magInterp = interp.RectBivariateSpline(x, y, mag)
+magInterp = interp.interp2d(x, y, mag, kind="linear")
+
 
 ## check neighbors
 
 #%% check increasing/decreasing x, y
-x = newOut['posXarray'][0]
+x = newOut['posXarray'].flatten()
 for index in range(1, len(x)):
     if(x[index-1] >= x[index]):
         print("ERROR")

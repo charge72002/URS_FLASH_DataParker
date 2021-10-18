@@ -166,9 +166,9 @@ plt.plot(X, Y)
 X, Y = hdf5_parser.cartesianCoordinates(h5py.File(filename, 'r'))
 plt.clf()
 # plt.plot(X, Y)
-colormap = np.linspace(1, len(X)*512, len(X)*512)
+# colormap = np.linspace(1, len(X)*512, len(X)*512)
 #repeat 2D 512 times
-# colormap = np.meshgrid(np.linspace(1, len(X), len(X)), np.empty(len(X), dtype=float))[0]
+colormap = np.meshgrid(np.linspace(1, len(X), len(X)), np.empty(len(X), dtype=float))[0]
 plt.scatter(X, Y, s=1, c=colormap)
 plt.savefig(pwd + "/Plots/Zclean2.png")
 
