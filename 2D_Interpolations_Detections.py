@@ -64,7 +64,7 @@ plt.clf()
 plt.plot(x, magY, 'o', xnew, ynew, '-')
 plt.plot([x.min(), x.max()], [0, 0])
 # plt.plot(x, magY)
-plt.savefig(pwd + "/Plots/1Dinterp.png")
+plt.savefig(pwd + "/Plots1Dinterp.png")
 
 
 #%%
@@ -87,8 +87,12 @@ magX = newOut['magXarray']
 pow(np.asarray([1, 2, 3]), 2)
 mag = np.sqrt(pow(magX, 2) + pow(magY, 2))
 # magInterp = interp.RectBivariateSpline(x, y, mag)
-magInterp = interp.interp2d(x, y, mag, kind="linear")
+# magInterp = interp.interp2d(x, y, mag, kind="linear")
 
+#select list of x values, list of y values
+magInterp = interp.RegularGridInterpolator((x[0, :], y[:,0]), mag) #this works!
+#CURL AND DIVERGENCE
+grad = np.gradient(magInterp)
 
 ## check neighbors
 
