@@ -31,6 +31,7 @@ import h5py
 import hdf5_parser
 
 import scipy.interpolate as interp
+import sympy
 
 #%%
 rawhdf = h5py.File(filename, 'r')
@@ -94,6 +95,33 @@ magInterp = interp.RegularGridInterpolator((x[0, :], y[:,0]), mag) #this works!
 #CURL AND DIVERGENCE
 grad = np.gradient(magInterp)
 
+#%% TEST: Plotting interpolated vs. original data (sanity check)
+#Compare interpolated and original data plots. They should match.
+#This code takes a few moments (<1min) to run
+plt.clf()
+fig, axs = plt.subplots(2, 1) #print on the same axes
+fig.suptitle("Mag magnitude")
+
+axs[0].set_title("Interpolated Data")
+interp=magInterp.values.flatten() #must be flattened b/c tricountour prefers 1D data
+lev = np.logspace(np.log10(interp.min()), np.log10(interp.max()), num=1000)
+axs[0].tricontourf(x.flatten(), y.flatten(), interp, locator=ticker.LogLocator(), levels=lev)
+
+axs[1].set_title("Original Data")
+z = mag.flatten()
+levz = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+axs[1].tricontourf(x.flatten(), y.flatten(), z, locator=ticker.LogLocator(), levels=levz)
+
+## check neighbors
+
+#%% Plotting curl.
+#DISCRETE CURL FORMULA:
+#Partial x(Fy) - Partial y(Fx)
+
+plt.clf()
+z=magInterp.values.flatten()
+lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+plt.tricontourf(x.flatten(), y.flatten(), z, locator=ticker.LogLocator(), levels=lev)
 ## check neighbors
 
 #%% check increasing/decreasing x, y
