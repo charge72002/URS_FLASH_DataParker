@@ -112,6 +112,7 @@ z = mag.flatten()
 levz = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
 axs[1].tricontourf(x.flatten(), y.flatten(), z, locator=ticker.LogLocator(), levels=levz)
 
+plt.savefig(pwd+"/Plots/InterpCheck.png")
 ## check neighbors
 
 #%% Plotting curl.
