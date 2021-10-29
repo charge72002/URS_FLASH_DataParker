@@ -76,7 +76,7 @@ z = newOut['densityArray'].flatten()
 plt.clf()
 plt.tricontourf(x, y, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
 plt.plot([x.min(), x.max()], [y[row][0], y[row][0]])
-plt.savefig(pwd + "/Plots/Xslice.png")
+plt.savefig(pwd + "/Plots/Xslice_t=80.png")
 
 
 #%% 2D interpolate
@@ -119,10 +119,51 @@ plt.savefig(pwd+"/Plots/InterpCheck.png")
 #DISCRETE CURL FORMULA:
 #Partial x(Fy) - Partial y(Fx)
 
+x = newOut['posXarray']
+y = newOut['posYarray']
+
+#curl
+PxFy = np.diff(magY, n=1, axis = 0) #shape (511, 512)
+PyFx = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+curl = PxFy[:,1:] - PyFx[1:] #reselect to rehape
+
+#div
+PyFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
+PxFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+div = PxFx[:,1:] + PyFy[1:]
+
 plt.clf()
-z=magInterp.values.flatten()
-lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
-plt.tricontourf(x.flatten(), y.flatten(), z, locator=ticker.LogLocator(), levels=lev)
+# lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
+plt.colorbar()
+plt.title("Mag Divergence (t=80)")
+plt.savefig(pwd + "/Plots/Div.png")
+
+plt.clf()
+# lev = np.logspace(np.log10(curl.min()), np.log10(curl.max()), num=1000)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
+plt.colorbar()
+plt.title("Mag Curl (t=80)")
+plt.savefig(pwd + "/Plots/Curl.png")
+#%%
+plt.clf()
+lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
+plt.colorbar()
+plt.savefig(pwd + "Plots/Div.png")
+
+#%%
+plt.clf()
+plt.contourf(x[1:, :1].flatten(), y[1:, 1].flatten(), div)
+
+plt.imshow(curl) #plots based on index array
+plt.colorbar()
+
+plt.tricontourf(x.flatten(), y.flatten(), curl.flatten(), locator=ticker.LogLocator(), levels=lev)
+
+# z=magInterp.values.flatten()
+# lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
+# plt.tricontourf(x.flatten(), y.flatten(), z, locator=ticker.LogLocator(), levels=lev)
 ## check neighbors
 
 #%% check increasing/decreasing x, y
