@@ -115,7 +115,7 @@ axs[1].tricontourf(x.flatten(), y.flatten(), z, locator=ticker.LogLocator(), lev
 plt.savefig(pwd+"/Plots/InterpCheck.png")
 ## check neighbors
 
-#%% Plotting curl.
+#%% Plotting curl and div
 #DISCRETE CURL FORMULA:
 #Partial x(Fy) - Partial y(Fx)
 
@@ -145,21 +145,10 @@ plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxN
 plt.colorbar()
 plt.title("Mag Curl (t=80)")
 plt.savefig(pwd + "/Plots/Curl.png")
-#%%
-plt.clf()
-lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
-plt.colorbar()
-plt.savefig(pwd + "Plots/Div.png")
 
 #%%
 plt.clf()
-plt.contourf(x[1:, :1].flatten(), y[1:, 1].flatten(), div)
-
 plt.imshow(curl) #plots based on index array
-plt.colorbar()
-
-plt.tricontourf(x.flatten(), y.flatten(), curl.flatten(), locator=ticker.LogLocator(), levels=lev)
 
 # z=magInterp.values.flatten()
 # lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
