@@ -49,8 +49,9 @@ def removeDuplicates(arrayIN):
     #END OF METHOD
 
 #Finds the number in the array closest to the target number.
-def closestNum(arrayIN, targetNum, removeDuplicates=True):
-    if(removeDuplicates): smallArray = removeDuplicates(arrayIN)
+def closestNum(arrayIN, targetNum, removeDupe=True):
+    arrayIN = list(arrayIN) #remove casting errors
+    if(removeDupe): smallArray = removeDuplicates(arrayIN)
     else: smallArray = arrayIN
     
     currentDev = float("inf")
