@@ -33,6 +33,37 @@ import hdf5_parser
 import scipy.interpolate as interp
 import sympy
 
+#Methods from "2D_xy_Scans.py"
+##THIS HAS BEEN ADAPTED FOR 2DARRAYS
+def removeDuplicates(arrayIN):
+    listOUT = []
+    for j in arrayIN:
+        for i in j:
+            if(listOUT.count(i)==0):
+                listOUT.append(i)        
+    arrayOUT = np.asarray(listOUT)
+    return arrayOUT
+    #END OF METHOD
+    
+#Finds the number in the array closest to the target number.
+#Requires removeDuplicates() function
+##THIS HAS BEEN ADAPTED FOR 2DARRAYS
+def closestNum(arrayIN, targetNum, removeDupe=True):
+    arrayIN = list(arrayIN) #remove casting errors
+    if(removeDupe): smallArray = removeDuplicates(arrayIN)
+    else: smallArray = arrayIN
+    
+    currentDev = float("inf")
+    result = float("inf")
+    #TODO: if you wanna have fun make this a binary search thing
+    for i in smallArray:
+        newDev = abs(targetNum-i)
+        if(newDev < currentDev):
+            currentDev =  newDev
+            result = i
+    if(result == float("inf")):
+        raise Exception("No match found")
+
 #%%
 rawhdf = h5py.File(filename, 'r')
 newOut = hdf5_parser.setup(filename, format = "cartesian")
@@ -121,6 +152,8 @@ plt.savefig(pwd+"/Plots/InterpCheck.png")
 
 x = newOut['posXarray']
 y = newOut['posYarray']
+magY = newOut['magYarray']
+magX = newOut['magXarray']
 
 #curl
 PxFy = np.diff(magY, n=1, axis = 0) #shape (511, 512)
@@ -146,9 +179,46 @@ plt.colorbar()
 plt.title("Mag Curl (t=80)")
 plt.savefig(pwd + "/Plots/Curl.png")
 
-#%%
+#%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)
+#trim to length
+xtrim = x[1:, 1:]
+ytrim = y[1:, 1:]
+#set box bounds
+conversion = 3.086e21
+ylim = -1.79040182984184e21
+bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': np.min(y),'ymax': ylim}
+#apply bounds
+TFtable = np.logical_and(
+    np.logical_and(bounds['xmin']<xtrim, bounds['xmax']>xtrim),
+    np.logical_and(bounds['ymin']<ytrim, bounds['ymax']>ytrim)
+    )
+#shape is not preserved in the following operation
+xZoom = xtrim[TFtable]
+yZoom = ytrim[TFtable]
+curlZoom = curl[TFtable]
+divZoom = div[TFtable]
+#reshape into 2D; need to find box dimensions
+middleXpos=(bounds['xmin']+bounds['xmax'])/2
+xindex = np.where(xtrim==closestNum(xtrim, middleXpos))
+yindex = closestNum(ytrim, (bounds['ymin']+bounds['ymax'])/2)
+xlen = np.count_nonzero(TFtable[xindex])
+ylen = np.count_nonzero(TFtable[:, yindex])
+for array in [xZoom, yZoom, curlZoom, divZoom]:
+    np.reshape(array, xlen, ylen)
+
+#plot
 plt.clf()
-plt.imshow(curl) #plots based on index array
+fig = plt.figure()
+ax = plt.contourf(xZoom, yZoom, divZoom, locator=ticker.MaxNLocator(100))
+# plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
+fig.colorbar(ax, boundaries = np.linspace(-2.5e-7, 2e-7, 10))
+plt.title("Mag Divergence (t=80)")
+# plt.set_zlim(-3e-7, 3e-7)
+plt.savefig("Div_t=80.png")
+
+#%%
+# plt.clf()
+# plt.imshow(curl) #plots based on index array
 
 # z=magInterp.values.flatten()
 # lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)

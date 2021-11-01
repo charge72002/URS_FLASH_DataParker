@@ -72,7 +72,7 @@ for fileName in os.listdir(filedirectory):
         ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
         fig.colorbar(ax)
         ax.title("Mag Divergence (t="+str(timeStamp)+")")
-        ax.set_zlim(-3e-7, 3e-7)
+        # ax.set_zlim(-3e-7, 3e-7)
         ax.savefig(saveDirectory + "/Div/t="+str(timeStamp)+".png")
         
         plt.clf()
@@ -80,7 +80,7 @@ for fileName in os.listdir(filedirectory):
         plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
         plt.colorbar()
         plt.title("Mag Curl (t="+str(timeStamp)+")")
-        plt.set_zlim(-2.5e-7, 2.5e-7)
+        # plt.set_zlim(-2.5e-7, 2.5e-7) #set_zlim doesn't really work; set colobar boundaries manually?
         plt.savefig(saveDirectory + "/Curl/t="+str(timeStamp)+".png")
 beepy.beep(4)
 print()
