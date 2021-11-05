@@ -70,17 +70,19 @@ for fileName in os.listdir(filedirectory):
         plt.clf()
         fig = plt.figure() 
         ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
-        fig.colorbar(ax)
-        ax.title("Mag Divergence (t="+str(timeStamp)+")")
+        plt.colorbar(ax)
+        plt.title("Mag Divergence (t="+str(timeStamp)+")")
         # ax.set_zlim(-3e-7, 3e-7)
-        ax.savefig(saveDirectory + "/Div/t="+str(timeStamp)+".png")
+        plt.savefig(saveDirectory + "/Div/t="+str(timeStamp)+".png")
         
         plt.clf()
         fig = plt.figure() 
         plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
         plt.colorbar()
         plt.title("Mag Curl (t="+str(timeStamp)+")")
-        # plt.set_zlim(-2.5e-7, 2.5e-7) #set_zlim doesn't really work; set colobar boundaries manually?
+        # plt.set_zlim(-2.5e-7, 2.5e-7) #
+        # set_zlim doesn't really work; 
+        # set colobar boundaries/contour levels manually?
         plt.savefig(saveDirectory + "/Curl/t="+str(timeStamp)+".png")
 beepy.beep(4)
 print()
@@ -93,10 +95,11 @@ print("Plotting done. Time elapsed (sec): " + str(time.time()-startTime))
 ##########
 #https://www.tutorialexample.com/python-create-gif-with-images-using-moviepy-a-complete-guide-python-tutorial/
 
-field = "div"
+field = "Curl"
 images = []
 for fileName in os.listdir(saveDirectory + '/' + field): #set in initial parameters
-    images.append(saveDirectory + '/' + field + '/' + fileName)
+    if (fileName.endswith(".png")):#avoid file format errors, even hidden 
+        images.append(saveDirectory + '/' + field + '/' + fileName)
 print(images)
 clip = ImageSequenceClip(images, fps=15)
 clip.write_gif(saveDirectory + '/' + field + '.gif') #saves in outside folder

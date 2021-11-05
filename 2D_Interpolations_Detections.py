@@ -106,7 +106,7 @@ y = newOut['posYarray'].flatten()
 z = newOut['densityArray'].flatten()
 plt.clf()
 plt.tricontourf(x, y, z, locator=ticker.LogLocator(), levels = lev) #good for irregular Z values
-plt.plot([x.min(), x.max()], [y[row][0], y[row][0]])
+# plt.plot([x.min(), x.max()], [y[row][0], y[row][0]])
 plt.savefig(pwd + "/Plots/Xslice_t=80.png")
 
 
@@ -184,7 +184,7 @@ plt.savefig(pwd + "/Plots/Curl.png")
 xtrim = x[1:, 1:]
 ytrim = y[1:, 1:]
 #set box bounds
-conversion = 3.086e21
+conversion = 3.086e21 #(pc to cm?)
 ylim = -1.79040182984184e21
 bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': np.min(y),'ymax': ylim}
 #apply bounds
@@ -204,7 +204,7 @@ yindex = closestNum(ytrim, (bounds['ymin']+bounds['ymax'])/2)
 xlen = np.count_nonzero(TFtable[xindex])
 ylen = np.count_nonzero(TFtable[:, yindex])
 for array in [xZoom, yZoom, curlZoom, divZoom]:
-    np.reshape(array, xlen, ylen)
+    np.reshape(array, (xlen, ylen))
 
 #plot
 plt.clf()
