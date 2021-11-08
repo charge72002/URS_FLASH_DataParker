@@ -13,7 +13,7 @@ filedirectory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot File
 pwd = "/Users/wongb/Documents/Python_Scripts"
 #%%
 ## Mac filenames
-filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0080"
+filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_0001"
 filedirectory = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files"
 pwd = "/Users/bwong/URS_FLASH_DataParker"
 
@@ -149,35 +149,68 @@ plt.savefig(pwd+"/Plots/InterpCheck.png")
 #%% Plotting curl and div
 #DISCRETE CURL FORMULA:
 #Partial x(Fy) - Partial y(Fx)
+timestamp = "0080"
+filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_" + timestamp
+rawhdf = h5py.File(filename, 'r')
+newOut = hdf5_parser.setup(filename, format = "cartesian")
 
 x = newOut['posXarray']
 y = newOut['posYarray']
 magY = newOut['magYarray']
 magX = newOut['magXarray']
 
-#curl
-PxFy = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-PyFx = np.diff(magX, n=1, axis = 1) #shape (512, 511)
-curl = PxFy[:,1:] - PyFx[1:] #reselect to rehape
+# #curl
+# PxFy = np.diff(magY, n=1, axis = 0) #shape (511, 512)
+# PyFx = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+# curl = PxFy[:,1:] - PyFx[1:] #reselect to rehape
+
+# #div
+# PyFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
+# PxFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+# div = PxFx[:,1:] + PyFy[1:]
 
 #div
-PyFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-PxFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
-div = PxFx[:,1:] + PyFy[1:]
+PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
+PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+div = PxFx[:,1:] + PyFy[1:] #reselect to rehape
+
+#curl
+PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
+PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+curl = PxFy[1:] - PyFx[:,1:]
 
 plt.clf()
 # lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
 plt.colorbar()
-plt.title("Mag Divergence (t=80)")
-plt.savefig(pwd + "/Plots/Div.png")
+plt.title("Mag Divergence (t="+timestamp+")")
+plt.savefig(pwd + "/Plots/Div"+timestamp+".png")
 
 plt.clf()
 # lev = np.logspace(np.log10(curl.min()), np.log10(curl.max()), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
 plt.colorbar()
-plt.title("Mag Curl (t=80)")
-plt.savefig(pwd + "/Plots/Curl.png")
+plt.title("Mag Curl (t="+timestamp+")")
+plt.savefig(pwd + "/Plots/Curl"+timestamp+".png")
+
+#%% LOG SCALE
+plt.clf()
+div = abs(div)
+lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = lev)
+plt.colorbar()
+plt.title("Mag Divergence (t="+timestamp+")")
+plt.savefig(pwd + "/Plots/LOGDiv"+timestamp+".png")
+
+plt.clf()
+curl = abs(curl)
+# lev = np.logspace(np.log10(curl.min()), np.log10(curl.max()), num=1000)
+lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = lev)
+# plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.LogLocator(100))
+plt.colorbar()
+plt.title("Mag Curl (t="+timestamp+")")
+plt.savefig(pwd + "/Plots/LOGCurl"+timestamp+".png")
 
 #%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)
 #trim to length
