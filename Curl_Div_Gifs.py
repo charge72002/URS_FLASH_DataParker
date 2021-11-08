@@ -100,6 +100,7 @@ images = []
 for fileName in os.listdir(saveDirectory + '/' + field): #set in initial parameters
     if (fileName.endswith(".png")):#avoid file format errors, even hidden 
         images.append(saveDirectory + '/' + field + '/' + fileName)
+#USE GLOB TO ORDER FILES
 print(images)
 clip = ImageSequenceClip(images, fps=15)
 clip.write_gif(saveDirectory + '/' + field + '.gif') #saves in outside folder
