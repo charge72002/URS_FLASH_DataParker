@@ -149,7 +149,7 @@ plt.savefig(pwd+"/Plots/InterpCheck.png")
 #%% Plotting curl and div
 #DISCRETE CURL FORMULA:
 #Partial x(Fy) - Partial y(Fx)
-timestamp = "0080"
+timestamp = "0001"
 filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_" + timestamp
 rawhdf = h5py.File(filename, 'r')
 newOut = hdf5_parser.setup(filename, format = "cartesian")
@@ -179,6 +179,7 @@ PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
 PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
 curl = PxFy[1:] - PyFx[:,1:]
 
+#%%
 plt.clf()
 # lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
@@ -196,20 +197,27 @@ plt.savefig(pwd + "/Plots/Curl"+timestamp+".png")
 #%% LOG SCALE
 plt.clf()
 div = abs(div)
-lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
+lowerexp = -11
+lowerbound = max(div.min(), pow(10, lowerexp)) #set minimum lower bound
+upperbound = max(div.max(), pow(10, lowerexp+1)) #set minimum lower bound
+lev = np.logspace(np.log10(lowerbound), np.log10(upperbound), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = lev)
-plt.colorbar()
+plt.colorbar(label = r"Divergence ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
 plt.title("Mag Divergence (t="+timestamp+")")
-plt.savefig(pwd + "/Plots/LOGDiv"+timestamp+".png")
+plt.xlabel("x position (cm)")
+plt.ylabel("y position (cm)")
+plt.savefig(pwd + "/Plots/LOGDiv"+timestamp+str(lowerexp)+".png")
 
 plt.clf()
 curl = abs(curl)
-# lev = np.logspace(np.log10(curl.min()), np.log10(curl.max()), num=1000)
-lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = lev)
-# plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.LogLocator(100))
-plt.colorbar()
+lowerbound = max(curl.min(), pow(10, -9)) #set minimum lower bound
+lev = np.logspace(np.log10(lowerbound), np.log10(curl.max()), num=1000)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = lev)
+# plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
+plt.colorbar(label = r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
 plt.title("Mag Curl (t="+timestamp+")")
+plt.xlabel("x position (cm)")
+plt.ylabel("y position (cm)")
 plt.savefig(pwd + "/Plots/LOGCurl"+timestamp+".png")
 
 #%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)

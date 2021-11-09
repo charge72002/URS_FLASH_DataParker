@@ -42,6 +42,7 @@ import time
 import beepy #sound for when the code is done running
 import moviepy
 from moviepy.editor import ImageSequenceClip
+# import glob #order files
 
 
 #%%
@@ -58,14 +59,15 @@ for fileName in os.listdir(filedirectory):
         magY = newOut['magYarray']
         magX = newOut['magXarray']
         
-        PxFy = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-        PyFx = np.diff(magX, n=1, axis = 1) #shape (512, 511)
-        curl = PxFy[:,1:] - PyFx[1:] #reselect to rehape
-        
         #div
-        PyFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-        PxFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
-        div = PxFx[:,1:] + PyFy[1:]
+        PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
+        PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+        div = PxFx[:,1:] + PyFy[1:] #reselect to rehape
+        
+        #curl
+        PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
+        PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+        curl = PxFy[1:] - PyFx[:,1:]
         
         plt.clf()
         fig = plt.figure() 
@@ -101,9 +103,12 @@ for fileName in os.listdir(saveDirectory + '/' + field): #set in initial paramet
     if (fileName.endswith(".png")):#avoid file format errors, even hidden 
         images.append(saveDirectory + '/' + field + '/' + fileName)
 #USE GLOB TO ORDER FILES
+images = sorted(images)
 print(images)
 clip = ImageSequenceClip(images, fps=15)
-clip.write_gif(saveDirectory + '/' + field + '.gif') #saves in outside folder
+# clip.write_gif(saveDirectory + '/' + field + '.gif') #saves in outside folder
+clip.write_videofile(saveDirectory + '/' + field + '.mp4') #save as .mp4
+
 clip.close()
 #DANGER!!! The line below removes the directory.
 # shutil.rmtree(saveDirectory + '/' + field) #delete images to save space
