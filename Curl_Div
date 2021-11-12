@@ -23,6 +23,7 @@ pwd = "/Users/bwong/URS_FLASH_DataParker"
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from matplotlib import ticker, cm #for log scale
 sys.path.insert(0, pwd)
 # import copy
@@ -65,10 +66,21 @@ def closestNum(arrayIN, targetNum, removeDupe=True):
     if(result == float("inf")):
         raise Exception("No match found")
 
+def EZlabels(title, timestamp, savefile = ""):
+    if savefile == "": savefile = title
+    plt.colorbar(label = title + r" ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+    plt.title("Mag "+title+" (t="+timestamp+")")
+    plt.xlabel("x position (cm)")
+    plt.ylabel("y position (cm)")
+    plt.savefig(pwd + "/Plots/"+savefile+timestamp+".png")
+
 #%% Plotting curl and div
+#SETUP DATA
+
 #DISCRETE CURL FORMULA:
 #Partial x(Fy) - Partial y(Fx)
-timestamp = "0001"
+
+timestamp = "0000"
 filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_" + timestamp
 rawhdf = h5py.File(filename, 'r')
 newOut = hdf5_parser.setup(filename, format = "cartesian")
@@ -78,15 +90,26 @@ y = newOut['posYarray']
 magY = newOut['magYarray']
 magX = newOut['magXarray']
 
-# #curl
-# PxFy = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-# PyFx = np.diff(magX, n=1, axis = 1) #shape (512, 511)
-# curl = PxFy[:,1:] - PyFx[1:] #reselect to rehape
+#div
+PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
+PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+divInit = PxFx[:,1:] + PyFy[1:] #reselect to rehape
 
-# #div
-# PyFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-# PxFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
-# div = PxFx[:,1:] + PyFy[1:]
+#curl
+PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
+PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+curlInit = PxFy[1:] - PyFx[:,1:]
+
+#%%
+timestamp = "0080"
+filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_" + timestamp
+rawhdf = h5py.File(filename, 'r')
+newOut = hdf5_parser.setup(filename, format = "cartesian")
+
+x = newOut['posXarray']
+y = newOut['posYarray']
+magY = newOut['magYarray']
+magX = newOut['magXarray']
 
 #div
 PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
@@ -98,20 +121,16 @@ PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
 PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
 curl = PxFy[1:] - PyFx[:,1:]
 
-#%%
+#%% Plot (w/ linear scale)
 plt.clf()
 # lev = np.logspace(np.log10(div.min()), np.log10(div.max()), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
-plt.colorbar()
-plt.title("Mag Divergence (t="+timestamp+")")
-plt.savefig(pwd + "/Plots/Div"+timestamp+".png")
+EZlabels("Div", timestamp)
 
 plt.clf()
 # lev = np.logspace(np.log10(curl.min()), np.log10(curl.max()), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
-plt.colorbar()
-plt.title("Mag Curl (t="+timestamp+")")
-plt.savefig(pwd + "/Plots/Curl"+timestamp+".png")
+EZlabels("Curl", timestamp)
 
 #%% LOG SCALE
 plt.clf()
@@ -121,11 +140,7 @@ lowerbound = max(div.min(), pow(10, lowerexp)) #set minimum lower bound
 upperbound = max(div.max(), pow(10, lowerexp+1)) #set minimum lower bound
 lev = np.logspace(np.log10(lowerbound), np.log10(upperbound), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = lev)
-plt.colorbar(label = r"Divergence ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-plt.title("Mag Divergence (t="+timestamp+")")
-plt.xlabel("x position (cm)")
-plt.ylabel("y position (cm)")
-plt.savefig(pwd + "/Plots/LOGDiv"+timestamp+str(lowerexp)+".png")
+EZlabels("Div", timestamp, savefile="LOGDiv(Exp"+str(lowerexp)+")") 
 
 plt.clf()
 curl = abs(curl)
@@ -133,11 +148,27 @@ lowerbound = max(curl.min(), pow(10, -9)) #set minimum lower bound
 lev = np.logspace(np.log10(lowerbound), np.log10(curl.max()), num=1000)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = lev)
 # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
-plt.colorbar(label = r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-plt.title("Mag Curl (t="+timestamp+")")
+EZlabels("Div", timestamp, savefile="LOGCurl(Exp"+str(lowerexp)+")") 
+
+#%% PCM LOG/SYMLOGNORM
+plt.clf()
+n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
+pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
+plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+plt.title("Mag Curl"+"(t="+timestamp+")")
 plt.xlabel("x position (cm)")
 plt.ylabel("y position (cm)")
-plt.savefig(pwd + "/Plots/LOGCurl"+timestamp+".png")
+plt.savefig(pwd + "/Plots/CurlSymLog"+timestamp+".png")
+#%% NORMALIZE
+
+plt.clf()
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div/divInit, locator=ticker.MaxNLocator(100))
+EZlabels("Div", timestamp, savefile="DivDivideInit"+str(lowerexp))
+
+plt.clf()
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl/curlInit, locator=ticker.MaxNLocator(100))
+EZlabels("Curl", timestamp, savefile="CurlDivideInit"+str(lowerexp))
 
 #%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)
 #trim to length
@@ -164,7 +195,7 @@ yindex = closestNum(ytrim, (bounds['ymin']+bounds['ymax'])/2)
 xlen = np.count_nonzero(TFtable[xindex])
 ylen = np.count_nonzero(TFtable[:, yindex])
 for array in [xZoom, yZoom, curlZoom, divZoom]:
-    np.reshape(array, (xlen, ylen))
+    np.reshape(array, (xlen, ylen)) #this throws an error
 
 #plot
 plt.clf()
