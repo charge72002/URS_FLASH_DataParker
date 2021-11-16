@@ -26,6 +26,7 @@ saveDirectory = pwd + "/gifs"
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from matplotlib import ticker, cm #for log scale
 sys.path.insert(0, pwd)
 # import copy
@@ -69,27 +70,51 @@ for fileName in os.listdir(filedirectory):
         PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
         curl = PxFy[1:] - PyFx[:,1:]
         
-        plt.clf()
-        fig = plt.figure() 
-        ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.MaxNLocator(100))
-        plt.colorbar(ax)
-        plt.title("Mag Divergence (t="+str(timeStamp)+")")
-        # ax.set_zlim(-3e-7, 3e-7)
-        plt.savefig(saveDirectory + "/Div/t="+str(timeStamp)+".png")
+        # #plot Div
+        # plt.clf()
+        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(div), vmax = np.max(div))
+        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, norm = n)
+        # fig = plt.figure() 
+        # ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, lev=1000)
+        # plt.colorbar(pcm, label =  r"Div ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+        # plt.title("Mag Divergence (t="+str(timeStamp)+")")
+        # # ax.set_zlim(-3e-7, 3e-7)
+        # plt.savefig(saveDirectory + "/Div/t="+str(timeStamp)+".png")
+        
+        # #plot curl
+        # plt.clf()
+        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
+        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
+        # fig = plt.figure() 
+        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, lev=1000)
+        # plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+        # plt.title("Mag Curl (t="+str(timeStamp)+")")
+        # plt.savefig(saveDirectory + "/Curl/t="+str(timeStamp)+".png")
         
         plt.clf()
-        fig = plt.figure() 
-        plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
-        plt.colorbar()
-        plt.title("Mag Curl (t="+str(timeStamp)+")")
-        # plt.set_zlim(-2.5e-7, 2.5e-7) #
-        # set_zlim doesn't really work; 
-        # set colobar boundaries/contour levels manually?
-        plt.savefig(saveDirectory + "/Curl/t="+str(timeStamp)+".png")
+        n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(div), vmax = np.max(div))
+        pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, norm = n)
+        plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = 100)
+        plt.colorbar(pcm, label =  r"Div ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+        plt.title("Mag Div"+"(t="+str(timeStamp)+")")
+        plt.xlabel("x position (cm)")
+        plt.ylabel("y position (cm)")
+        plt.savefig(saveDirectory + "/div/t="+str(timeStamp)+".png")
+        
+        plt.clf()
+        n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
+        pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
+        plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
+        plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+        plt.title("Mag Curl"+"(t="+str(timeStamp)+")")
+        plt.xlabel("x position (cm)")
+        plt.ylabel("y position (cm)")
+        plt.savefig(saveDirectory + "/curl/t="+str(timeStamp)+".png")
 beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print("Plotting done. Time elapsed (sec): " + str(time.time()-startTime))
+plt.close()
 
 #%%
 ##########
@@ -97,7 +122,7 @@ print("Plotting done. Time elapsed (sec): " + str(time.time()-startTime))
 ##########
 #https://www.tutorialexample.com/python-create-gif-with-images-using-moviepy-a-complete-guide-python-tutorial/
 
-field = "Curl"
+field = "Div"
 images = []
 for fileName in os.listdir(saveDirectory + '/' + field): #set in initial parameters
     if (fileName.endswith(".png")):#avoid file format errors, even hidden 

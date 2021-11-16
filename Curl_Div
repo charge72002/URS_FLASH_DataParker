@@ -132,6 +132,9 @@ plt.clf()
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
 EZlabels("Curl", timestamp)
 
+#####################################
+## LOG SCALES (Pretty much identical)
+#####################################
 #%% LOG SCALE
 plt.clf()
 div = abs(div)
@@ -160,15 +163,20 @@ plt.title("Mag Curl"+"(t="+timestamp+")")
 plt.xlabel("x position (cm)")
 plt.ylabel("y position (cm)")
 plt.savefig(pwd + "/Plots/CurlSymLog"+timestamp+".png")
+
+################################
+## MANY DIFFERENT NORMALIZATIONS
+################################
+
 #%% NORMALIZE
 
 plt.clf()
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div/divInit, locator=ticker.MaxNLocator(100))
-EZlabels("Div", timestamp, savefile="DivDivideInit"+str(lowerexp))
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((div-divInit)/divInit), locator=ticker.MaxNLocator(100))
+EZlabels("Div", timestamp, savefile="DivSubtractDivideInit")
 
 plt.clf()
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl/curlInit, locator=ticker.MaxNLocator(100))
-EZlabels("Curl", timestamp, savefile="CurlDivideInit"+str(lowerexp))
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((curl-curlInit)/curlInit), locator=ticker.MaxNLocator(100))
+EZlabels("Curl", timestamp, savefile="CurlSubtractDivideInit")
 
 #%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)
 #trim to length
