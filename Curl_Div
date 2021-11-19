@@ -89,6 +89,7 @@ x = newOut['posXarray']
 y = newOut['posYarray']
 magY = newOut['magYarray']
 magX = newOut['magXarray']
+magInit = np.sqrt(pow(magX, 2), pow(magY, 2))[1:, 1:]
 
 #div
 PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
@@ -159,24 +160,55 @@ n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax
 pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
 plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-plt.title("Mag Curl"+"(t="+timestamp+")")
+plt.title("Mag Curl SymLogNorm"+"(t="+timestamp+")")
 plt.xlabel("x position (cm)")
 plt.ylabel("y position (cm)")
 plt.savefig(pwd + "/Plots/CurlSymLog"+timestamp+".png")
+
+#%% POWERNORM
+plt.clf()
+n=colors.PowerNorm(0.2)
+pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
+plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+plt.title("Mag Curl PowerNorm $\gamma = 0.2$"+"(t="+timestamp+")")
+plt.xlabel("x position (cm)")
+plt.ylabel("y position (cm)")
+plt.savefig(pwd + "/Plots/CurlPowerNorm"+timestamp+".png")
 
 ################################
 ## MANY DIFFERENT NORMALIZATIONS
 ################################
 
-#%% NORMALIZE
+#%% NORMALIZE BY MATH
 
 plt.clf()
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((div-divInit)/divInit), locator=ticker.MaxNLocator(100))
-EZlabels("Div", timestamp, savefile="DivSubtractDivideInit")
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((div-divInit)/magInit), locator=ticker.LogLocator(100))
+EZlabels("Div", timestamp, savefile="DivSubtractDivideInitLOG")
 
 plt.clf()
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((curl-curlInit)/curlInit), locator=ticker.MaxNLocator(100))
-EZlabels("Curl", timestamp, savefile="CurlSubtractDivideInit")
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((curl-curlInit)/magInit), locator=ticker.LogLocator(100))
+EZlabels("Curl", timestamp, savefile="CurlSubtractDivideInitLOG")
+
+#%% ++ log scale
+plt.clf()
+z = abs((curl-curlInit)/magInit)
+#lowerbound = max(z.min(), pow(10, -9)) #set minimum lower bound
+lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=100)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z),levels=100)#, levels = lev)
+# plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
+plt.colorbar()
+
+#EZlabels("CurlLog", timestamp, savefile="CurlSubtractDivideInitLOGCurl(Exp"+str(lowerexp)+")") 
+
+
+#%%
+z=abs((curl-curlInit)/magInit)
+plt.clf()
+n=colors.LogNorm(vmin = z.min(), vmax = z.max())
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), z, norm = n, levels = 100)
+plt.colorbar()
+
 
 #%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)
 #trim to length
@@ -223,4 +255,30 @@ plt.savefig("Div_t=80.png")
 # lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=1000)
 # plt.tricontourf(x.flatten(), y.flatten(), z, locator=ticker.LogLocator(), levels=lev)
 ## check neighbors
+
+#%% 2D CURL DETECTION
+#%%
+# plot bubble positions on yt slice
+# iteratively test different thresholds
+# for threshold in np.linspace(1.0, 7.5, 14):
+for threshold in [0, 1, 2, 3]:
+#for threshold in np.linspace(100, 500, 1000):
+    TFselect = curl > threshold #using this threshold
+    print(str(sum(TFselect)) + " matches")
+    
+    xbubblepos = x[1:,1:][TFselect]
+    ybubblepos = y[1:,1:][TFselect]
+    
+    plt.clf()
+    plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((curl-curlInit)/magInit), locator=ticker.MaxNLocator(100))
+    EZlabels("Curl", timestamp)
+    
+    length = 1e21
+    #plot '+' on percieved bubble positions
+    for i in range(0, len(xbubblepos)):
+        x = xbubblepos[i]
+        y = ybubblepos[i]
+        plt.annotate_line((x, y+length, 0), (x, y-length, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
+        plt.annotate_line((x+length, y, 0), (x-length, y, 0), coord_system="data",  plot_args={"color": "red", "linewidth": 1})
+    plt.savefig(pwd + "/Plots/2DCurlDetection"+str(threshold)+str(timestamp)+".png")
 

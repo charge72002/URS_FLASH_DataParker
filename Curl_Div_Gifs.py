@@ -45,6 +45,32 @@ import moviepy
 from moviepy.editor import ImageSequenceClip
 # import glob #order files
 
+#%%
+#SETUP DATA
+
+#DISCRETE CURL FORMULA:
+#Partial x(Fy) - Partial y(Fx)
+
+timestamp = "0000"
+filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_" + timestamp
+rawhdf = h5py.File(filename, 'r')
+newOut = hdf5_parser.setup(filename, format = "cartesian")
+
+x = newOut['posXarray']
+y = newOut['posYarray']
+magY = newOut['magYarray']
+magX = newOut['magXarray']
+magInit = np.sqrt(pow(magX, 2), pow(magY, 2))[1:, 1:]
+
+#div
+PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
+PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+divInit = PxFx[:,1:] + PyFy[1:] #reselect to rehape
+
+#curl
+PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
+PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+curlInit = PxFy[1:] - PyFx[:,1:]
 
 #%%
 startTime = time.time()
@@ -91,24 +117,34 @@ for fileName in os.listdir(filedirectory):
         # plt.title("Mag Curl (t="+str(timeStamp)+")")
         # plt.savefig(saveDirectory + "/Curl/t="+str(timeStamp)+".png")
         
-        plt.clf()
-        n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(div), vmax = np.max(div))
-        pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, norm = n)
-        plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = 100)
-        plt.colorbar(pcm, label =  r"Div ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-        plt.title("Mag Div"+"(t="+str(timeStamp)+")")
-        plt.xlabel("x position (cm)")
-        plt.ylabel("y position (cm)")
-        plt.savefig(saveDirectory + "/div/t="+str(timeStamp)+".png")
+        #OLD
+        # plt.clf()
+        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(div), vmax = np.max(div))
+        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, norm = n)
+        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = 100)
+        # plt.colorbar(pcm, label =  r"Div ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+        # plt.title("Mag Div"+"(t="+str(timeStamp)+")")
+        # plt.xlabel("x position (cm)")
+        # plt.ylabel("y position (cm)")
+        # plt.savefig(saveDirectory + "/div/t="+str(timeStamp)+".png")
+        
+        # plt.clf()
+        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
+        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
+        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
+        # plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+        # plt.title("Mag Curl"+"(t="+str(timeStamp)+")")
+        # plt.xlabel("x position (cm)")
+        # plt.ylabel("y position (cm)")
+        # plt.savefig(saveDirectory + "/curl/t="+str(timeStamp)+".png")
         
         plt.clf()
-        n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
-        pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
-        plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
-        plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-        plt.title("Mag Curl"+"(t="+str(timeStamp)+")")
-        plt.xlabel("x position (cm)")
-        plt.ylabel("y position (cm)")
+        z = abs((curl-curlInit)/magInit)
+        #lowerbound = max(z.min(), pow(10, -9)) #set minimum lower bound
+        lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=100)
+        plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z),levels=100)#, levels = lev)
+        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
+        plt.colorbar()
         plt.savefig(saveDirectory + "/curl/t="+str(timeStamp)+".png")
 beepy.beep(4)
 print()
@@ -122,7 +158,7 @@ plt.close()
 ##########
 #https://www.tutorialexample.com/python-create-gif-with-images-using-moviepy-a-complete-guide-python-tutorial/
 
-field = "Div"
+field = "curl"
 images = []
 for fileName in os.listdir(saveDirectory + '/' + field): #set in initial parameters
     if (fileName.endswith(".png")):#avoid file format errors, even hidden 
