@@ -142,9 +142,13 @@ for fileName in os.listdir(filedirectory):
         z = abs((curl-curlInit)/magInit)
         #lowerbound = max(z.min(), pow(10, -9)) #set minimum lower bound
         lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=100)
-        plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z),levels=100)#, levels = lev)
+        ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z),levels=100)#, levels = lev)
         # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
-        plt.colorbar()
+        plt.title("Mag Curl Diff/Initial Mag Field"+"(t="+str(timeStamp)+")")
+        plt.xlabel("x position (cm)")
+        plt.ylabel("y position (cm)")
+        ax.set_zlim(-9, 5)
+        plt.colorbar(label =  r"log(Curl) ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
         plt.savefig(saveDirectory + "/curl/t="+str(timeStamp)+".png")
 beepy.beep(4)
 print()
@@ -168,7 +172,7 @@ images = sorted(images)
 print(images)
 clip = ImageSequenceClip(images, fps=15)
 # clip.write_gif(saveDirectory + '/' + field + '.gif') #saves in outside folder
-clip.write_videofile(saveDirectory + '/' + field + '.mp4') #save as .mp4
+clip.write_videofile(saveDirectory + '/' + field + 'ABC.mp4') #save as .mp4
 
 clip.close()
 #DANGER!!! The line below removes the directory.
