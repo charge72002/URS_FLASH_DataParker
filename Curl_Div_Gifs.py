@@ -96,48 +96,6 @@ for fileName in os.listdir(filedirectory):
         PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
         curl = PxFy[1:] - PyFx[:,1:]
         
-        # #plot Div
-        # plt.clf()
-        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(div), vmax = np.max(div))
-        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, norm = n)
-        # fig = plt.figure() 
-        # ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, lev=1000)
-        # plt.colorbar(pcm, label =  r"Div ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-        # plt.title("Mag Divergence (t="+str(timeStamp)+")")
-        # # ax.set_zlim(-3e-7, 3e-7)
-        # plt.savefig(saveDirectory + "/Div/t="+str(timeStamp)+".png")
-        
-        # #plot curl
-        # plt.clf()
-        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
-        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
-        # fig = plt.figure() 
-        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, lev=1000)
-        # plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-        # plt.title("Mag Curl (t="+str(timeStamp)+")")
-        # plt.savefig(saveDirectory + "/Curl/t="+str(timeStamp)+".png")
-        
-        #OLD
-        # plt.clf()
-        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(div), vmax = np.max(div))
-        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, norm = n)
-        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, levels = 100)
-        # plt.colorbar(pcm, label =  r"Div ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-        # plt.title("Mag Div"+"(t="+str(timeStamp)+")")
-        # plt.xlabel("x position (cm)")
-        # plt.ylabel("y position (cm)")
-        # plt.savefig(saveDirectory + "/div/t="+str(timeStamp)+".png")
-        
-        # plt.clf()
-        # n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
-        # pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
-        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
-        # plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-        # plt.title("Mag Curl"+"(t="+str(timeStamp)+")")
-        # plt.xlabel("x position (cm)")
-        # plt.ylabel("y position (cm)")
-        # plt.savefig(saveDirectory + "/curl/t="+str(timeStamp)+".png")
-        
         plt.clf()
         # fig = plt.figure()
         # ax = fig.add_subplot(1, 1, 1)
@@ -156,17 +114,17 @@ for fileName in os.listdir(filedirectory):
         plt.savefig(saveDirectory + "/curl/t="+str(timeStamp)+".png")
         
         ##DIV
-        # z = abs((div-div)/magInit)
-        # #lowerbound = max(z.min(), pow(10, -9)) #set minimum lower bound
-        # lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=100)
-        # ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z),levels=100)#, levels = lev)
-        # # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
-        # plt.title("Mag Div Diff/Initial Mag Field"+"(t="+str(timeStamp)+")")
-        # plt.xlabel("x position (cm)")
-        # plt.ylabel("y position (cm)")
-        # # ax.set_zlim(-9, 5)
-        # plt.colorbar(label =  r"log(Div) ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-        # plt.savefig(saveDirectory + "/div/t="+str(timeStamp)+".png")
+        z = abs((div-divInit)/magInit)
+        #lowerbound = max(z.min(), pow(10, -9)) #set minimum lower bound
+        lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=100)
+        ax = plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z),levels=100)#, levels = lev)
+        # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
+        plt.title("Mag Div Diff/Initial Mag Field"+"(t="+str(timeStamp)+")")
+        plt.xlabel("x position (cm)")
+        plt.ylabel("y position (cm)")
+        # ax.set_zlim(-9, 5)
+        plt.colorbar(label =  r"log(Div) ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+        plt.savefig(saveDirectory + "/div/t="+str(timeStamp)+".png")
 beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")

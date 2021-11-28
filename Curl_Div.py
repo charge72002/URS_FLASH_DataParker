@@ -73,6 +73,18 @@ def EZlabels(title, timestamp, savefile = ""):
     plt.xlabel("x position (cm)")
     plt.ylabel("y position (cm)")
     plt.savefig(pwd + "/Plots/"+savefile+timestamp+".png")
+    
+#div
+def calcDiv(X_field, Y_field):
+    PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
+    PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+    return(PxFx[:,1:] + PyFy[1:]) #reselect to rehape
+
+#curl
+def calcCurl(X_field, Y_field):
+    PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
+    PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+    return(PxFy[1:] - PyFx[:,1:]) #reselect to rehape
 
 #%% Plotting curl and div
 #SETUP DATA
@@ -91,15 +103,9 @@ magY = newOut['magYarray']
 magX = newOut['magXarray']
 magInit = np.sqrt(pow(magX, 2), pow(magY, 2))[1:, 1:]
 
-#div
-PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
-divInit = PxFx[:,1:] + PyFy[1:] #reselect to rehape
+divInit = calcDiv(magX, magY)
+curlInit = curl = calcCurl(magX, magY)
 
-#curl
-PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
-curlInit = PxFy[1:] - PyFx[:,1:]
 
 #%%
 timestamp = "0080"
@@ -112,15 +118,8 @@ y = newOut['posYarray']
 magY = newOut['magYarray']
 magX = newOut['magXarray']
 
-#div
-PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
-div = PxFx[:,1:] + PyFy[1:] #reselect to rehape
-
-#curl
-PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
-curl = PxFy[1:] - PyFx[:,1:]
+div = calcDiv(magX, magY)
+curl = calcCurl(magX, magY)
 
 #%% Plot (w/ linear scale)
 plt.clf()
@@ -133,9 +132,6 @@ plt.clf()
 plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, locator=ticker.MaxNLocator(100))
 EZlabels("Curl", timestamp)
 
-#####################################
-## LOG SCALES (Pretty much identical)
-#####################################
 #%% LOG SCALE
 plt.clf()
 div = abs(div)
@@ -154,61 +150,26 @@ plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = lev)
 # plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
 EZlabels("Div", timestamp, savefile="LOGCurl(Exp"+str(lowerexp)+")") 
 
-#%% PCM LOG/SYMLOGNORM
-plt.clf()
-n=colors.SymLogNorm(linthresh=10e-10, linscale=10e-10, vmin = np.min(curl), vmax = np.max(curl))
-pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
-plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-plt.title("Mag Curl SymLogNorm"+"(t="+timestamp+")")
-plt.xlabel("x position (cm)")
-plt.ylabel("y position (cm)")
-plt.savefig(pwd + "/Plots/CurlSymLog"+timestamp+".png")
-
-#%% POWERNORM
-plt.clf()
-n=colors.PowerNorm(0.2)
-pcm = plt.pcolormesh(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, norm = n)
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), curl, levels = 100)
-plt.colorbar(pcm, label =  r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
-plt.title("Mag Curl PowerNorm $\gamma = 0.2$"+"(t="+timestamp+")")
-plt.xlabel("x position (cm)")
-plt.ylabel("y position (cm)")
-plt.savefig(pwd + "/Plots/CurlPowerNorm"+timestamp+".png")
-
-################################
-## MANY DIFFERENT NORMALIZATIONS
-################################
-
 #%% NORMALIZE BY MATH
 
 plt.clf()
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((div-divInit)/magInit), locator=ticker.LogLocator(100))
+z=abs((div-divInit)/magInit)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z), levels=100)
 EZlabels("Div", timestamp, savefile="DivSubtractDivideInitLOG")
 
 plt.clf()
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), abs((curl-curlInit)/magInit), locator=ticker.LogLocator(100))
+z=abs((curl-curlInit)/magInit)
+plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z), levels=100)
 EZlabels("Curl", timestamp, savefile="CurlSubtractDivideInitLOG")
 
-#%% ++ log scale
+#%% experiment with colorbar limits
 plt.clf()
-z = abs((curl-curlInit)/magInit)
-#lowerbound = max(z.min(), pow(10, -9)) #set minimum lower bound
-lev = np.logspace(np.log10(z.min()), np.log10(z.max()), num=100)
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z),levels=100)#, levels = lev)
-# plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), div, locator=ticker.LogLocator())
-plt.colorbar()
-
-#EZlabels("CurlLog", timestamp, savefile="CurlSubtractDivideInitLOGCurl(Exp"+str(lowerexp)+")") 
-
-
-#%%
+fig, ax = plt.subplots(1, 1)
 z=abs((curl-curlInit)/magInit)
-plt.clf()
-n=colors.LogNorm(vmin = z.min(), vmax = z.max())
-plt.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), z, norm = n, levels = 100)
-plt.colorbar()
-
+ax.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z), levels=100)
+fig.colorbar()
+ax.clim(-9, 5)
+# EZlabels("Curl", timestamp, savefile="CurlSubtractDivideInitLOG")
 
 #%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)
 #trim to length
