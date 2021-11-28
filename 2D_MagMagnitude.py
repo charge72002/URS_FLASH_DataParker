@@ -94,7 +94,7 @@ slc.show_colorbar()
 slc.save(pwd + "/bubble_velocity_2D/magY00")
 
     
- #%%
+#%%
 # iterative implementation of threshold
 TFselect = ad[('gas', 'magnetic_field_magnitude')] < 4E-9 #using this threshold
 print(str(sum(TFselect)) + " matches")
