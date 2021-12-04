@@ -68,6 +68,19 @@ def directoryCheck(testDir):
         #DANGER!!! The line below removes the directory.
         shutil.rmtree(testDir) #remove path
         os.mkdir(testDir) #remake path
+
+#taken from Curl_Div.py        
+#div
+def calcDiv(X_field, Y_field):
+    PxFx = np.diff(Y_field, n=1, axis = 0) #shape (511, 512)
+    PyFy = np.diff(X_field, n=1, axis = 1) #shape (512, 511)
+    return(PxFx[:,1:] + PyFy[1:]) #reselect to rehape
+
+#curl
+def calcCurl(X_field, Y_field):
+    PxFy = np.diff(Y_field, n=1, axis = 1) #shape (512, 511)
+    PyFx = np.diff(X_field, n=1, axis = 0) #shape (511, 512)
+    return(PxFy[1:] - PyFx[:,1:]) #reselect to rehape
 #%%
 #SETUP DATA
 
@@ -85,15 +98,8 @@ magY = newOut['magYarray']
 magX = newOut['magXarray']
 magInit = np.sqrt(pow(magX, 2), pow(magY, 2))[1:, 1:]
 
-#div
-PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
-divInit = PxFx[:,1:] + PyFy[1:] #reselect to rehape
-
-#curl
-PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
-curlInit = PxFy[1:] - PyFx[:,1:]
+divInit = calcDiv(magX, magY)
+curlInit = calcCurl(magX, magY)
 
 #%%
 while(True):
@@ -140,15 +146,8 @@ for fileName in os.listdir(filedirectory):
         magY = newOut['magYarray']
         magX = newOut['magXarray']
         
-        #div
-        PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-        PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
-        div = PxFx[:,1:] + PyFy[1:] #reselect to rehape
-        
-        #curl
-        PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-        PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
-        curl = PxFy[1:] - PyFx[:,1:]
+        div = calcDiv(magX, magY)
+        curl = calcCurl(magX, magY)
         
         plt.clf()
         # fig = plt.figure()
