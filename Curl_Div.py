@@ -76,14 +76,14 @@ def EZlabels(title, timestamp, savefile = ""):
     
 #div
 def calcDiv(X_field, Y_field):
-    PxFx = np.diff(magY, n=1, axis = 0) #shape (511, 512)
-    PyFy = np.diff(magX, n=1, axis = 1) #shape (512, 511)
+    PxFx = np.diff(Y_field, n=1, axis = 0) #shape (511, 512)
+    PyFy = np.diff(X_field, n=1, axis = 1) #shape (512, 511)
     return(PxFx[:,1:] + PyFy[1:]) #reselect to rehape
 
 #curl
 def calcCurl(X_field, Y_field):
-    PxFy = np.diff(magY, n=1, axis = 1) #shape (512, 511)
-    PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
+    PxFy = np.diff(Y_field, n=1, axis = 1) #shape (512, 511)
+    PyFx = np.diff(X_field, n=1, axis = 0) #shape (511, 512)
     return(PxFy[1:] - PyFx[:,1:]) #reselect to rehape
 
 # Plotting curl and div~~~~~~~~~~~~~~~~~~~~~~
