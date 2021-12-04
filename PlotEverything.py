@@ -18,6 +18,7 @@ from moviepy.editor import ImageSequenceClip
 import beepy #sound for when the code is done running
 import numpy as np
 from yt.units import kpc
+import sys
 
 # directory = "/Users/wongb/Documents/URS Data/m2_c1_16x8_64x64/More Plot Files/"
 # directory = "D://URS_LargeData/Parker_forSherry/"
@@ -28,7 +29,27 @@ os.path.exists(directory)
 saveDirectory = "D:/URS_LargeData/SherryPlots"
 path.exists(saveDirectory)
 
-
+def directoryCheck(testDir):
+    #make directory if they do not yet already exist
+    if (not path.exists(testDir)):
+        os.mkdir(testDir)
+        
+    #ask if usr wants to overwrite existing files
+    if(len(os.listdir(testDir)) != 0):
+        while(True):
+            print("Files found in " + testDir)
+            print("Overwrite? (Y/N)", end="")
+            response = input()
+            print() #linebreak
+            if response == 'Y': break
+            if response == 'N': 
+                print("Ending program. Reason: Files found in " + testDir)
+                sys.exit()
+            elif response != 'Y': print("Invalid response.")
+        print("Emptying "+ testDir)
+        #DANGER!!! The line below removes the directory.
+        shutil.rmtree(testDir) #remove path
+        os.mkdir(testDir) #remake path
 #%%
 ##################################
 #Really plot everything. Full box.
@@ -41,8 +62,9 @@ path.exists(saveDirectory)
 field = 'temp'
 startTime = time.time()
 #https://stackabuse.com/creating-and-deleting-directories-with-python/
-if (not path.exists(saveDirectory + "/" + field)):
-    os.mkdir(saveDirectory + "/" + field)
+    
+testDir = saveDirectory + "/" + field
+directoryCheck(testDir)  
     
 for fileName in os.listdir(directory):
     if(fileName.startswith("parkerCRs")):
@@ -112,6 +134,9 @@ bounds = {'xmin': 2.5*conversion, 'xmax': 6*conversion, 'ymin': float(min(ad['y'
 ylim = -1.79040182984184e21
 # bounds = {'xmin': 2.1*pow(10, 22), 'xmax': 2.5*pow(10, 22), 'ymin': float(min(ad['y']).value),'ymax': ylim}
 
+testDir = saveDirectory + "/" + field
+directoryCheck(testDir)        
+
 startTime = time.time()
 for fileName in os.listdir(directory):
     if(fileName.startswith("parkerCRs")):
@@ -137,8 +162,6 @@ for fileName in os.listdir(directory):
         # slc.set_zlim('temp', 1e2, 1e6)
         slc.set_zlim('cray', 1e10, 1e13)
         
-        if (not path.exists(saveDirectory + "/" + field)):
-            os.mkdir(saveDirectory + "/" + field)
         slc.save(saveDirectory + "/" + field + "/" + timeStamp)
 beepy.beep(4)
 print()

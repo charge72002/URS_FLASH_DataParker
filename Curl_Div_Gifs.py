@@ -43,8 +43,31 @@ import time
 import beepy #sound for when the code is done running
 import moviepy
 from moviepy.editor import ImageSequenceClip
+import shutil
 # import glob #order files
 
+
+def directoryCheck(testDir):
+    #make directory if they do not yet already exist
+    if (not path.exists(testDir)):
+        os.mkdir(testDir)
+        
+    #ask if usr wants to overwrite existing files
+    if(len(os.listdir(testDir)) != 0):
+        while(True):
+            print("Files found in " + testDir)
+            print("Overwrite? (Y/N)", end="")
+            response = input()
+            print() #linebreak
+            if response == 'Y': break
+            if response == 'N': 
+                print("Ending program. Reason: Files found in " + testDir)
+                sys.exit()
+            elif response != 'Y': print("Invalid response.")
+        print("Emptying "+ testDir)
+        #DANGER!!! The line below removes the directory.
+        shutil.rmtree(testDir) #remove path
+        os.mkdir(testDir) #remake path
 #%%
 #SETUP DATA
 
@@ -73,11 +96,42 @@ PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
 curlInit = PxFy[1:] - PyFx[:,1:]
 
 #%%
+while(True):
+    print("Files found in " + saveDirectory + "/curl")
+    print("Overwrite? (Y/N)", end="")
+    response = input()
+    print() #linebreak
+    if response == 'Y': break
+    if response == 'N': 
+        print("Ending program. Reason: Files found in " + saveDirectory + "/curl")
+        sys.exit()
+    elif response != 'Y': print("Invalid response.")
+print("Emptying "+ saveDirectory + "/curl")
+#%%
 startTime = time.time()
 #https://stackabuse.com/creating-and-deleting-directories-with-python/
+
+directoryCheck(saveDirectory + "/curl") 
+directoryCheck(saveDirectory + "/div") 
+    while(True):
+        print("Files found in " + testDir)
+        print("Overwrite? (Y/N)", end="")
+        response = input()
+        print() #linebreak
+        if response == 'Y': break
+        if response == 'N': 
+            print("Ending program. Reason: Files found in " + testDir)
+            sys.exit()
+        elif response != 'Y': print("Invalid response.")
+    print("Emptying "+ testDir)
+    #DANGER!!! The line below removes the directory.
+    shutil.rmtree(testDir) #remove path
+    os.mkdir(testDir) #remake path
     
 for fileName in os.listdir(filedirectory):
-    if(fileName.startswith("parkerCRs")):
+    if(fileName.startswith("parkerCRs")):            
+        plt.figure(1) #limit to one plot window
+        
         print(fileName)
         timeStamp = fileName[len(fileName)-4: len(fileName)]
         newOut = hdf5_parser.setup(filedirectory +"/"+ fileName, format = "cartesian")
@@ -125,6 +179,8 @@ for fileName in os.listdir(filedirectory):
         # ax.set_zlim(-9, 5)
         plt.colorbar(label =  r"log(Div) ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
         plt.savefig(saveDirectory + "/div/t="+str(timeStamp)+".png")
+        
+        plt.clf() #close plot window
 beepy.beep(4)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
