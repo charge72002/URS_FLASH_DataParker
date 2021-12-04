@@ -86,7 +86,7 @@ def calcCurl(X_field, Y_field):
     PyFx = np.diff(magX, n=1, axis = 0) #shape (511, 512)
     return(PxFy[1:] - PyFx[:,1:]) #reselect to rehape
 
-#%% Plotting curl and div
+# Plotting curl and div~~~~~~~~~~~~~~~~~~~~~~
 #SETUP DATA
 
 #DISCRETE CURL FORMULA:
@@ -107,7 +107,7 @@ divInit = calcDiv(magX, magY)
 curlInit = curl = calcCurl(magX, magY)
 
 
-#%%
+# ~~~~~~~~~~~~~~~~~~~~~~
 timestamp = "0080"
 filename = "/Users/bwong/Downloads/URS_Data/m2_c1_16x8_64x64/More Plot Files/parkerCRs_hdf5_plt_cnt_" + timestamp
 rawhdf = h5py.File(filename, 'r')
@@ -164,12 +164,31 @@ EZlabels("Curl", timestamp, savefile="CurlSubtractDivideInitLOG")
 
 #%% experiment with colorbar limits
 plt.clf()
-fig, ax = plt.subplots(1, 1)
+fig = plt.figure(1, figsize = (5, 5))
+ax = fig.subplots(nrows = 1, ncols = 1)
 z=abs((curl-curlInit)/magInit)
-ax.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z), levels=100)
-fig.colorbar()
-ax.clim(-9, 5)
-# EZlabels("Curl", timestamp, savefile="CurlSubtractDivideInitLOG")
+#im = ax.contourf(x[:1, 1:].flatten(), y[1:, :1].flatten(), np.log10(z), levels=100)
+# X = x[1:, 1:]
+# Y = y[1:, 1:]
+X = x[:1, 1:].flatten()
+Y = y[1:, :1].flatten()
+Z = np.log10(z)
+# im = ax.contourf(X,Y, Z, levels=100)
+im = ax.contourf(X,Y, Z, levels=100, vmin = -5, vmax = 5)
+#ax.imshow(np.log10(z))
+# cbar_ax = fig.add_axes([0.91, 0.25, 0.03, 0.5])
+# fig.colorbar(im, cax = cbar_ax)
+fig.colorbar(im, label = r"log(Curl) ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+# plt.clim(-5, 3)
+ax.set_title("Mag Diff(t="+timestamp+")")
+ax.set_xlabel("x position (cm)")
+ax.set_ylabel("y position (cm)")
+
+plt.show()
+#plt.savefig(pwd + "/Plots/Curl_NewColorbar"+timestamp+".png")
+#%% PLOT SIDE BY SIDE
+
+#plt.figure(n)
 
 #%% Zoom (Why? To re-draw the colorbar while plotting, NOT just matplotlib zoom.)
 #trim to length
