@@ -53,8 +53,10 @@ startTime = time.time()
 timeStamps = [] #list of time stamps
 divAvg = [] #list of average divergence
 divTotal = [] #list of total divergence
+divMax = []
 curlAvg = [] #list of average curl
 curlTotal = [] #list of total curl
+curlMax = []
 
 for fileName in sorted(os.listdir(filedirectory)):
     if(fileName.startswith("parkerCRs")):
@@ -72,11 +74,13 @@ for fileName in sorted(os.listdir(filedirectory)):
         absDiv = abs(div)
         absCurl = abs(curl)
         
-        timeStamps.append(timeStamp)
+        timeStamps.append(int(timeStamp))
         divAvg.append(np.mean(absDiv))
         divTotal.append(np.sum(absDiv))
+        divMax.append(np.max(absDiv))
         curlAvg.append(np.mean(absCurl))
         curlTotal.append(np.sum(absCurl))
+        curlMax.append(np.sum(absCurl))
 beepy.beep(6)
 print()
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -102,6 +106,22 @@ plt.ylabel(r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
 plt.xlabel("Time stamp")
 plt.savefig(pwd + '/Conservation/CurlAvg')
 
+plt.close()
+plt.plot(timeStamps, divMax)
+plt.title("Max Divergence")
+plt.xticks(xticks)
+plt.ylabel(r"Divergence ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+plt.xlabel("Time stamp")
+plt.savefig(pwd + '/Conservation/DivTotal')
+
+plt.close()
+plt.plot(timeStamps, curlMax)
+plt.title("Max Curl")
+plt.xticks(xticks)
+plt.ylabel(r"Curl ($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+plt.xlabel("Time stamp")
+plt.savefig(pwd + '/Conservation/CurlTotal')
+
 #%% Save as .csv
 with open(pwd + '/Conservation/DivCurl.csv', 'w', newline='') as csvfile:
     fieldnames = ['t', "Avg_Divergence", "Total_Divergence", "Avg_Curl", "Total_Curl"]
@@ -113,5 +133,7 @@ with open(pwd + '/Conservation/DivCurl.csv', 'w', newline='') as csvfile:
         writer.writerow({'t':               timeStamps[i], 
                          "Avg_Divergence":  divAvg[i],
                          "Total_Divergence":divTotal[i],
+                         "Max_Divergence":  divMax[i],
                          "Avg_Curl":        curlAvg[i],
-                         "Total_Curl":      curlTotal[i]})
+                         "Total_Curl":      curlTotal[i],
+                         "Max_Curl":        curlMax[i]})
