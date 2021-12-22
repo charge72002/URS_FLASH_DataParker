@@ -244,15 +244,15 @@ fig, ax = plt.subplots()
 labels = {'total': 'Total Energy', 'KE': 'Kinetic Energy', 'PE_grav': 'Gravitational Energy',
           'PE_mag': 'Magnetic Energy', 'PE_cr': 'Cosmic Ray Energy', 'PE_thermo': 'Thermal Energy'}
 for field in variation:
-    ax.plot(timeStamps, variation[field], label=labels[field], lw=2.5)
-    ax.axvline(70, color='black')
-    ax.axvline(100, color='black')
+    ax.plot(timeStamps[:60], variation[field][:60], label=labels[field], lw=2.5)
+    # ax.axvline(70, color='black')
+    # ax.axvline(100, color='black')
     # ax.plot(timeStamps, np.abs(np.divide(variation[field], 10**54)), label=labels[field])
 # ax.plot(timeStamps, np.abs(np.divide(variation['total'], 10**54)), label=field)
 # ax.set_yscale('symlog')
 fig.suptitle("All energies; variation")
 ax.legend()
-fig.savefig(pwd + '/Conservation/Variation')
+fig.savefig(pwd + '/Conservation/Variation_MaxT=60')
 print("Plotting finished.")
 
 

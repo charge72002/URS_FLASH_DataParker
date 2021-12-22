@@ -137,3 +137,41 @@ with open(pwd + '/Conservation/DivCurl.csv', 'w', newline='') as csvfile:
                          "Avg_Curl":        curlAvg[i],
                          "Total_Curl":      curlTotal[i],
                          "Max_Curl":        curlMax[i]})
+
+#%% READ csv
+#from EnergyConservation.py
+
+dataDict = {}
+
+with open(pwd + '/Conservation/DivCurl.csv', 'r', newline='') as csvfile:
+    r = csv.DictReader(csvfile)
+    linenum=0
+    for row in r:
+        # print(row.keys())
+        for label in row: 
+            if(linenum==0): dataDict[label] = [] #init
+            dataDict[label].append(float(row[label]))
+        linenum+=1
+    print(str(linenum) + " lines read.")
+    print(dataDict.keys())
+#timeStamps = dataDict.pop('t')
+#%%
+maxT = 40
+field = "Avg_Curl"
+plt.clf()
+plt.plot(dataDict["t"][:maxT],dataDict[field][:maxT])
+plt.title(field)
+plt.ylabel(field.split('_')[1] + r"($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+plt.xlabel("Time stamp")
+plt.savefig(pwd + '/Conservation/' + field + "_MaxT=" + str(maxT))
+
+#%%
+maxT = 40
+fieldA = "Avg_Curl"
+fieldB = "Avg_Divergence"
+plt.clf()
+plt.plot(dataDict["t"][:maxT], np.asarray(dataDict[fieldA][:maxT])/np.asarray(dataDict[fieldB][:maxT]))
+plt.title(field)
+plt.ylabel(field.split('_')[1] + r"($\frac{G}{cm} = \frac{1}{10^{-7}} \frac{\mu G}{kpc}$)")
+plt.xlabel("Time stamp")
+plt.savefig(pwd + "/Conservation/ratio_MaxT=" + str(maxT))
