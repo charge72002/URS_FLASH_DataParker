@@ -61,4 +61,36 @@ slc.annotate_title(timestamp +" density")
 #follow this link for tutorial:
 #https://yt-project.org/doc/cookbook/complex_plots.html
 from yt.visualization.api import get_multi_plot #no such function?
+import yt.visualization.api
 fig, axes, colorbars = yt.get_multi_plot(2, 3, colorbar="horizontal", bw=6)
+
+#%% Multipane; single image; many fields
+#Also from
+#https://yt-project.org/doc/cookbook/complex_plots.html
+print(ds.field_list)
+print(ds.derived_field_list)
+
+fields = [
+    ("gas", "density"),
+    ("gas", "velocity_x"),
+    ("gas", "velocity_y"),
+    ("gas", "velocity_magnitude"),
+]
+
+p = yt.SlicePlot(ds, "z", fields)
+p.set_log(("gas", "velocity_x"), False)
+p.set_log(("gas", "velocity_y"), False)
+
+# this returns a matplotlib figure with an ImageGrid and the slices
+# added to the grid of axes (in this case, 2x2)
+fig = p.export_to_mpl_figure((2, 2))
+
+fig.tight_layout()
+fig.savefig("multiplot.png")
+
+
+
+
+
+
+
